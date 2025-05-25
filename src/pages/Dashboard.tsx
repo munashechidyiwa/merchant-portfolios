@@ -10,6 +10,7 @@ import { PerformanceAnalytics } from "@/components/analytics/PerformanceAnalytic
 import { CommunicationLog } from "@/components/communication/CommunicationLog";
 import { ReportsSection } from "@/components/reports/ReportsSection";
 import { AlertsPanel } from "@/components/alerts/AlertsPanel";
+import { AdminPanel } from "@/components/admin/AdminPanel";
 
 const Dashboard = () => {
   const [activeView, setActiveView] = useState('overview');
@@ -31,6 +32,8 @@ const Dashboard = () => {
         return <ReportsSection selectedOfficer={selectedOfficer} />;
       case 'alerts':
         return <AlertsPanel selectedOfficer={selectedOfficer} />;
+      case 'admin':
+        return <AdminPanel selectedOfficer={selectedOfficer} />;
       default:
         return <DashboardOverview selectedOfficer={selectedOfficer} />;
     }

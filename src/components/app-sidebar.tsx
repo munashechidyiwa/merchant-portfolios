@@ -7,7 +7,8 @@ import {
   BarChart3, 
   MessageSquare, 
   FileText, 
-  Bell 
+  Bell,
+  Shield
 } from "lucide-react";
 import {
   Sidebar,
@@ -64,6 +65,14 @@ const menuItems = [
   },
 ];
 
+const adminItems = [
+  {
+    title: "Admin Panel",
+    url: "admin",
+    icon: Shield,
+  },
+];
+
 export function AppSidebar({ activeView, setActiveView }: AppSidebarProps) {
   return (
     <Sidebar className="border-r border-gray-200">
@@ -83,6 +92,29 @@ export function AppSidebar({ activeView, setActiveView }: AppSidebarProps) {
                     className={`w-full justify-start ${
                       activeView === item.url 
                         ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        
+        <SidebarGroup>
+          <SidebarGroupLabel>Administration</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {adminItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton 
+                    onClick={() => setActiveView(item.url)}
+                    className={`w-full justify-start ${
+                      activeView === item.url 
+                        ? 'bg-red-50 text-red-700 border-r-2 border-red-700' 
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
                   >

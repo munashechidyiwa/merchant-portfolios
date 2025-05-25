@@ -15,7 +15,9 @@ const mockData = {
   activeMerchants: 723,
   totalTerminals: 1234,
   activeTerminals: 1089,
-  monthlyRevenue: 2456789,
+  monthlyRevenueUSD: 1256789,
+  monthlyRevenueZWG: 4500000,
+  zwgToUsdRate: 3.58,
   revenueGrowth: 12.5,
   activityRate: 88.3
 };
@@ -35,6 +37,8 @@ const pieData = [
 ];
 
 export function DashboardOverview({ selectedOfficer }: DashboardOverviewProps) {
+  const consolidatedRevenue = mockData.monthlyRevenueUSD + (mockData.monthlyRevenueZWG / mockData.zwgToUsdRate);
+
   return (
     <div className="space-y-6">
       {/* Key Metrics Cards */}
@@ -68,16 +72,34 @@ export function DashboardOverview({ selectedOfficer }: DashboardOverviewProps) {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-shadow lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${(mockData.monthlyRevenue / 1000000).toFixed(2)}M</div>
-            <div className="flex items-center text-xs text-green-600">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              +{mockData.revenueGrowth}% from last month
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">USD:</span>
+                <span className="font-semibold">${(mockData.monthlyRevenueUSD / 1000000).toFixed(2)}M</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">ZWG:</span>
+                <span className="font-semibold">ZWG {(mockData.monthlyRevenueZWG / 1000000).toFixed(2)}M</span>
+              </div>
+              <div className="border-t pt-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Consolidated (USD):</span>
+                  <span className="text-xl font-bold">${(consolidatedRevenue / 1000000).toFixed(2)}M</span>
+                </div>
+                <div className="text-xs text-gray-500">
+                  Rate: 1 USD = {mockData.zwgToUsdRate} ZWG
+                </div>
+              </div>
+              <div className="flex items-center text-xs text-green-600">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                +{mockData.revenueGrowth}% from last month
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -152,7 +174,7 @@ export function DashboardOverview({ selectedOfficer }: DashboardOverviewProps) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {['Sarah Johnson', 'Michael Chen', 'Emily Rodriguez', 'David Thompson', 'Lisa Wang', 'James Wilson'].map((officer, index) => (
+            {['Takudzwa Madyira', 'Olivia Usai', 'Tinashe Mariridza', 'Mufaro Maphosa', 'Lisa Wang', 'James Wilson'].map((officer, index) => (
               <div key={officer} className="text-center p-4 bg-gray-50 rounded-lg">
                 <div className="text-sm font-medium text-gray-600">{officer}</div>
                 <div className="text-lg font-bold text-gray-900">{120 + index * 15}</div>

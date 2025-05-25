@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { FileText, Download, Calendar as CalendarIcon, Filter, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
+import { DateRange } from "react-day-picker";
 
 interface ReportsSectionProps {
   selectedOfficer: string;
@@ -84,7 +84,7 @@ const recentReports = [
 export function ReportsSection({ selectedOfficer }: ReportsSectionProps) {
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('');
-  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [filterCategory, setFilterCategory] = useState('all');
 
   const filteredTemplates = reportTemplates.filter(template => 
@@ -153,7 +153,7 @@ export function ReportsSection({ selectedOfficer }: ReportsSectionProps) {
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left">
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateRange.from ? (
+                    {dateRange?.from ? (
                       dateRange.to ? (
                         <>
                           {format(dateRange.from, "LLL dd, y")} -{" "}
@@ -171,7 +171,7 @@ export function ReportsSection({ selectedOfficer }: ReportsSectionProps) {
                   <Calendar
                     initialFocus
                     mode="range"
-                    defaultMonth={dateRange.from}
+                    defaultMonth={dateRange?.from}
                     selected={dateRange}
                     onSelect={setDateRange}
                     numberOfMonths={2}
