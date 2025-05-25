@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Monitor, Wifi, WifiOff, Settings } from "lucide-react";
+import { Search, Monitor, Wifi, WifiOff, MapPin, ExternalLink } from "lucide-react";
 
 interface TerminalTrackingProps {
   selectedOfficer: string;
@@ -16,36 +16,39 @@ interface TerminalTrackingProps {
 const mockTerminals = [
   {
     id: 'T001',
+    serialNumber: 'SN123456789',
     merchantName: 'Sunset Cafe',
     merchantId: 'M001',
     status: 'Active',
-    location: 'Front Counter',
+    location: 'Corner Samora Machel Ave & Julius Nyerere Way, Harare, Zimbabwe',
     model: 'Ingenico iWL250',
     lastTransaction: '2024-01-20T14:30:00',
     dailyTransactions: 47,
-    officer: 'Sarah Johnson'
+    officer: 'Takudzwa Madyira'
   },
   {
     id: 'T002',
+    serialNumber: 'SN987654321',
     merchantName: 'Tech Solutions Inc',
     merchantId: 'M002',
     status: 'Active',
-    location: 'Reception Desk',
+    location: 'Borrowdale Road, Borrowdale, Harare, Zimbabwe',
     model: 'Verifone V240m',
     lastTransaction: '2024-01-20T15:45:00',
     dailyTransactions: 23,
-    officer: 'Michael Chen'
+    officer: 'Olivia Usai'
   },
   {
     id: 'T003',
+    serialNumber: 'SN456789123',
     merchantName: 'Fashion Boutique',
     merchantId: 'M003',
     status: 'Inactive',
-    location: 'Checkout Counter',
+    location: 'First Street, CBD, Harare, Zimbabwe',
     model: 'PAX A920',
     lastTransaction: '2024-01-15T11:20:00',
     dailyTransactions: 0,
-    officer: 'Emily Rodriguez'
+    officer: 'Tinashe Mariridza'
   },
 ];
 
@@ -64,15 +67,19 @@ export function TerminalTracking({ selectedOfficer }: TerminalTrackingProps) {
 
   function getOfficerName(officerId: string): string {
     const officers: { [key: string]: string } = {
-      'officer1': 'Sarah Johnson',
-      'officer2': 'Michael Chen',
-      'officer3': 'Emily Rodriguez',
-      'officer4': 'David Thompson',
-      'officer5': 'Lisa Wang',
-      'officer6': 'James Wilson',
+      'officer1': 'Takudzwa Madyira',
+      'officer2': 'Olivia Usai',
+      'officer3': 'Tinashe Mariridza',
+      'officer4': 'Mufaro Maphosa',
     };
     return officers[officerId] || '';
   }
+
+  const openGoogleMaps = (location: string) => {
+    const encodedLocation = encodeURIComponent(location);
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
+    window.open(googleMapsUrl, '_blank');
+  };
 
   const activeTerminals = filteredTerminals.filter(t => t.status === 'Active');
   const inactiveTerminals = filteredTerminals.filter(t => t.status === 'Inactive');
@@ -99,7 +106,7 @@ export function TerminalTracking({ selectedOfficer }: TerminalTrackingProps) {
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{activeTerminals.length}</div>
             <div className="text-xs text-muted-foreground">
-              {((activeTerminals.length / filteredTerminals.length) * 100).toFixed(1)}% of total
+              {filteredTerminals.length > 0 ? ((activeTerminals.length / filteredTerminals.length) * 100).toFixed(1) : 0}% of total
             </div>
           </CardContent>
         </Card>
@@ -155,15 +162,15 @@ export function TerminalTracking({ selectedOfficer }: TerminalTrackingProps) {
             </TabsList>
 
             <TabsContent value="all">
-              <TerminalTable terminals={filteredTerminals} />
+              <TerminalTable terminals={filteredTerminals} onLocationClick={openGoogleMaps} />
             </TabsContent>
 
             <TabsContent value="active">
-              <TerminalTable terminals={activeTerminals} />
+              <TerminalTable terminals={activeTerminals} onLocationClick={openGoogleMaps} />
             </TabsContent>
 
             <TabsContent value="inactive">
-              <TerminalTable terminals={inactiveTerminals} />
+              <TerminalTable terminals={inactiveTerminals} onLocationClick={openGoogleMaps} />
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -172,32 +179,33 @@ export function TerminalTracking({ selectedOfficer }: TerminalTrackingProps) {
   );
 }
 
-function TerminalTable({ terminals }: { terminals: any[] }) {
+function TerminalTable({ terminals, onLocationClick }: { terminals: any[]; onLocationClick: (location: string) => void }) {
   return (
     <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Merchant Name</TableHead>
             <TableHead>Terminal ID</TableHead>
-            <TableHead>Merchant</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Location</TableHead>
+            <TableHead>Terminal Serial Number</TableHead>
             <TableHead>Model</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead>Last Transaction</TableHead>
-            <TableHead>Daily Transactions</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead>Location</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {terminals.map((terminal) => (
             <TableRow key={terminal.id}>
-              <TableCell className="font-mono">{terminal.id}</TableCell>
               <TableCell>
                 <div>
                   <div className="font-medium">{terminal.merchantName}</div>
                   <div className="text-sm text-gray-500">{terminal.merchantId}</div>
                 </div>
               </TableCell>
+              <TableCell className="font-mono">{terminal.id}</TableCell>
+              <TableCell className="font-mono text-sm">{terminal.serialNumber}</TableCell>
+              <TableCell className="text-sm">{terminal.model}</TableCell>
               <TableCell>
                 <Badge 
                   variant={terminal.status === 'Active' ? 'default' : 'secondary'}
@@ -206,15 +214,19 @@ function TerminalTable({ terminals }: { terminals: any[] }) {
                   {terminal.status}
                 </Badge>
               </TableCell>
-              <TableCell>{terminal.location}</TableCell>
-              <TableCell className="text-sm">{terminal.model}</TableCell>
               <TableCell>
                 {new Date(terminal.lastTransaction).toLocaleString()}
               </TableCell>
-              <TableCell className="text-center">{terminal.dailyTransactions}</TableCell>
               <TableCell>
-                <Button variant="outline" size="sm">
-                  <Settings className="h-4 w-4" />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                  onClick={() => onLocationClick(terminal.location)}
+                >
+                  <MapPin className="h-4 w-4" />
+                  <span className="max-w-32 truncate">{terminal.location}</span>
+                  <ExternalLink className="h-3 w-3" />
                 </Button>
               </TableCell>
             </TableRow>

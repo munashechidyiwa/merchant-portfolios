@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, ReferenceLine } from 'recharts';
 import { TrendingUp, TrendingDown, Users, Monitor, DollarSign, Activity } from "lucide-react";
 
 interface DashboardOverviewProps {
@@ -18,7 +18,7 @@ const officerData = {
     activeTerminals: 178,
     monthlyRevenueUSD: 245000,
     monthlyRevenueZWG: 876000,
-    activityRate: 86.8
+    activityRatio: 86.8
   },
   'officer2': { // Olivia Usai
     merchants: 156,
@@ -27,7 +27,7 @@ const officerData = {
     activeTerminals: 195,
     monthlyRevenueUSD: 287000,
     monthlyRevenueZWG: 1028000,
-    activityRate: 89.4
+    activityRatio: 89.4
   },
   'officer3': { // Tinashe Mariridza
     merchants: 138,
@@ -36,7 +36,7 @@ const officerData = {
     activeTerminals: 172,
     monthlyRevenueUSD: 234000,
     monthlyRevenueZWG: 838000,
-    activityRate: 86.9
+    activityRatio: 66.9
   },
   'officer4': { // Mufaro Maphosa
     merchants: 147,
@@ -45,7 +45,7 @@ const officerData = {
     activeTerminals: 183,
     monthlyRevenueUSD: 265000,
     monthlyRevenueZWG: 949000,
-    activityRate: 87.1
+    activityRatio: 57.1
   },
   'all': {
     merchants: 847,
@@ -54,17 +54,26 @@ const officerData = {
     activeTerminals: 1089,
     monthlyRevenueUSD: 1256789,
     monthlyRevenueZWG: 4500000,
-    activityRate: 88.3
+    activityRatio: 75.3
   }
 };
 
-const chartData = [
-  { month: 'Jan', revenue: 210000, terminals: 950 },
-  { month: 'Feb', revenue: 225000, terminals: 980 },
-  { month: 'Mar', revenue: 240000, terminals: 1020 },
-  { month: 'Apr', revenue: 235000, terminals: 1050 },
-  { month: 'May', revenue: 265000, terminals: 1089 },
-  { month: 'Jun', revenue: 280000, terminals: 1120 },
+const zwgTurnoverData = [
+  { month: 'Jan', actual: 750000, target: 800000 },
+  { month: 'Feb', actual: 820000, target: 850000 },
+  { month: 'Mar', actual: 890000, target: 900000 },
+  { month: 'Apr', actual: 850000, target: 900000 },
+  { month: 'May', actual: 950000, target: 950000 },
+  { month: 'Jun', actual: 1020000, target: 1000000 },
+];
+
+const usdTurnoverData = [
+  { month: 'Jan', actual: 210000, target: 230000 },
+  { month: 'Feb', actual: 225000, target: 240000 },
+  { month: 'Mar', actual: 240000, target: 250000 },
+  { month: 'Apr', actual: 235000, target: 250000 },
+  { month: 'May', actual: 265000, target: 270000 },
+  { month: 'Jun', actual: 280000, target: 280000 },
 ];
 
 const pieData = [
@@ -76,6 +85,14 @@ export function DashboardOverview({ selectedOfficer }: DashboardOverviewProps) {
   const mockData = officerData[selectedOfficer as keyof typeof officerData] || officerData.all;
   const zwgToUsdRate = 3.58;
   const consolidatedRevenue = mockData.monthlyRevenueUSD + (mockData.monthlyRevenueZWG / zwgToUsdRate);
+
+  const getActivityRatioColor = (ratio: number) => {
+    return ratio >= 70 ? 'text-green-600' : 'text-red-600';
+  };
+
+  const getActivityRatioBgColor = (ratio: number) => {
+    return ratio >= 70 ? 'bg-green-100' : 'bg-red-100';
+  };
 
   return (
     <div className="space-y-6">
@@ -144,69 +161,100 @@ export function DashboardOverview({ selectedOfficer }: DashboardOverviewProps) {
 
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Activity Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">Activity Ratio</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockData.activityRate}%</div>
-            <Progress value={mockData.activityRate} className="mt-2" />
+            <div className={`text-2xl font-bold ${getActivityRatioColor(mockData.activityRatio)}`}>
+              {mockData.activityRatio}%
+            </div>
+            <Progress 
+              value={mockData.activityRatio} 
+              className="mt-2" 
+            />
+            <div className="text-xs text-gray-500 mt-1">
+              Target: 70% (Current: {mockData.activityRatio >= 70 ? 'Above' : 'Below'} target)
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
           <CardHeader>
-            <CardTitle>Revenue & Terminal Growth</CardTitle>
+            <CardTitle>ZWG Turnover</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
+              <LineChart data={zwgTurnoverData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip 
                   formatter={(value, name) => [
-                    name === 'revenue' ? `$${(value as number).toLocaleString()}` : value,
-                    name === 'revenue' ? 'Revenue' : 'Terminals'
+                    `ZWG ${(value as number).toLocaleString()}`,
+                    name === 'actual' ? 'Actual' : 'Target'
                   ]}
                 />
-                <Bar dataKey="revenue" fill="#3b82f6" name="revenue" />
-                <Bar dataKey="terminals" fill="#10b981" name="terminals" />
-              </BarChart>
+                <Line type="monotone" dataKey="actual" stroke="#3b82f6" strokeWidth={2} name="actual" />
+                <Line type="monotone" dataKey="target" stroke="#ef4444" strokeDasharray="5 5" strokeWidth={2} name="target" />
+              </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Terminal Activity</CardTitle>
+            <CardTitle>USD Turnover</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={[
-                    { name: 'Active', value: mockData.activityRate, color: '#10b981' },
-                    { name: 'Inactive', value: 100 - mockData.activityRate, color: '#ef4444' },
+              <LineChart data={usdTurnoverData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value, name) => [
+                    `$${(value as number).toLocaleString()}`,
+                    name === 'actual' ? 'Actual' : 'Target'
                   ]}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  dataKey="value"
-                  label={({ name, value }) => `${name}: ${value.toFixed(1)}%`}
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
+                />
+                <Line type="monotone" dataKey="actual" stroke="#10b981" strokeWidth={2} name="actual" />
+                <Line type="monotone" dataKey="target" stroke="#ef4444" strokeDasharray="5 5" strokeWidth={2} name="target" />
+              </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Terminal Activity Distribution</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={[
+                  { name: 'Active', value: mockData.activityRatio, color: '#10b981' },
+                  { name: 'Inactive', value: 100 - mockData.activityRatio, color: '#ef4444' },
+                ]}
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                dataKey="value"
+                label={({ name, value }) => `${name}: ${value.toFixed(1)}%`}
+              >
+                {pieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
 
       {/* Officer Performance Quick View */}
       {selectedOfficer === 'all' && (
@@ -216,14 +264,21 @@ export function DashboardOverview({ selectedOfficer }: DashboardOverviewProps) {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {['Takudzwa Madyira', 'Olivia Usai', 'Tinashe Mariridza', 'Mufaro Maphosa'].map((officer, index) => (
-                <div key={officer} className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="text-sm font-medium text-gray-600">{officer}</div>
-                  <div className="text-lg font-bold text-gray-900">{120 + index * 15}</div>
-                  <div className="text-xs text-gray-500">Merchants</div>
-                  <Progress value={85 + index * 2} className="mt-2" />
-                </div>
-              ))}
+              {['Takudzwa Madyira', 'Olivia Usai', 'Tinashe Mariridza', 'Mufaro Maphosa'].map((officer, index) => {
+                const officerKey = `officer${index + 1}` as keyof typeof officerData;
+                const data = officerData[officerKey];
+                return (
+                  <div key={officer} className="text-center p-4 bg-gray-50 rounded-lg">
+                    <div className="text-sm font-medium text-gray-600">{officer}</div>
+                    <div className="text-lg font-bold text-gray-900">{data.merchants}</div>
+                    <div className="text-xs text-gray-500">Merchants</div>
+                    <Progress value={data.activityRatio} className="mt-2" />
+                    <div className={`text-xs mt-1 ${getActivityRatioColor(data.activityRatio)}`}>
+                      {data.activityRatio}% Activity Ratio
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

@@ -11,21 +11,19 @@ interface PerformanceAnalyticsProps {
 }
 
 const revenueData = [
-  { month: 'Jan', revenue: 210000, transactions: 1250 },
-  { month: 'Feb', revenue: 225000, transactions: 1340 },
-  { month: 'Mar', revenue: 240000, transactions: 1420 },
-  { month: 'Apr', revenue: 235000, transactions: 1380 },
-  { month: 'May', revenue: 265000, transactions: 1520 },
-  { month: 'Jun', revenue: 280000, transactions: 1650 },
+  { month: 'Jan', usdRevenue: 210000, zwgRevenue: 750000, usdTarget: 230000, zwgTarget: 800000 },
+  { month: 'Feb', usdRevenue: 225000, zwgRevenue: 820000, usdTarget: 240000, zwgTarget: 850000 },
+  { month: 'Mar', usdRevenue: 240000, zwgRevenue: 890000, usdTarget: 250000, zwgTarget: 900000 },
+  { month: 'Apr', usdRevenue: 235000, zwgRevenue: 850000, usdTarget: 250000, zwgTarget: 900000 },
+  { month: 'May', usdRevenue: 265000, zwgRevenue: 950000, usdTarget: 270000, zwgTarget: 950000 },
+  { month: 'Jun', usdRevenue: 280000, zwgRevenue: 1020000, usdTarget: 280000, zwgTarget: 1000000 },
 ];
 
 const officerPerformance = [
-  { name: 'Sarah Johnson', merchants: 142, revenue: 480000, growth: 12.5 },
-  { name: 'Michael Chen', merchants: 138, revenue: 465000, growth: 8.3 },
-  { name: 'Emily Rodriguez', merchants: 135, revenue: 445000, growth: -2.1 },
-  { name: 'David Thompson', merchants: 141, revenue: 475000, growth: 15.2 },
-  { name: 'Lisa Wang', merchants: 139, revenue: 460000, growth: 6.8 },
-  { name: 'James Wilson', merchants: 137, revenue: 455000, growth: 9.4 },
+  { name: 'Takudzwa Madyira', merchants: 142, usdRevenue: 245000, zwgRevenue: 876000, activityRatio: 86.8 },
+  { name: 'Olivia Usai', merchants: 156, usdRevenue: 287000, zwgRevenue: 1028000, activityRatio: 89.4 },
+  { name: 'Tinashe Mariridza', merchants: 138, usdRevenue: 234000, zwgRevenue: 838000, activityRatio: 66.9 },
+  { name: 'Mufaro Maphosa', merchants: 147, usdRevenue: 265000, zwgRevenue: 949000, activityRatio: 57.1 },
 ];
 
 const industryData = [
@@ -37,17 +35,27 @@ const industryData = [
 ];
 
 export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsProps) {
+  const zwgToUsdRate = 3.58;
+  
+  const getActivityRatioColor = (ratio: number) => {
+    return ratio >= 70 ? 'text-green-600' : 'text-red-600';
+  };
+
+  const getActivityRatioBadgeColor = (ratio: number) => {
+    return ratio >= 70 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+  };
+
   return (
     <div className="space-y-6">
       {/* Key Performance Indicators */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Total USD Revenue</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$2.87M</div>
+            <div className="text-2xl font-bold">$1.53M</div>
             <div className="flex items-center text-xs text-green-600">
               <TrendingUp className="h-3 w-3 mr-1" />
               +12.5% from last quarter
@@ -57,14 +65,28 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Activity Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">Total ZWG Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">ZWG 5.47M</div>
+            <div className="flex items-center text-xs text-green-600">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              +8.3% from last quarter
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg. Activity Ratio</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">88.3%</div>
-            <div className="flex items-center text-xs text-green-600">
+            <div className="text-2xl font-bold text-orange-600">75.3%</div>
+            <div className="flex items-center text-xs text-orange-600">
               <TrendingUp className="h-3 w-3 mr-1" />
-              +2.1% from last month
+              +2.1% from last month (Target: 70%)
             </div>
           </CardContent>
         </Card>
@@ -82,27 +104,13 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">94.7%</div>
-            <div className="flex items-center text-xs text-green-600">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              +0.8% from last month
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Revenue Trend</CardTitle>
+            <CardTitle>USD Revenue vs Target</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -110,13 +118,40 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip formatter={(value) => [`$${(value as number).toLocaleString()}`, 'Revenue']} />
-                <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2} />
+                <Tooltip formatter={(value, name) => [
+                  `$${(value as number).toLocaleString()}`, 
+                  name === 'usdRevenue' ? 'Actual USD' : 'Target USD'
+                ]} />
+                <Line type="monotone" dataKey="usdRevenue" stroke="#10b981" strokeWidth={2} name="usdRevenue" />
+                <Line type="monotone" dataKey="usdTarget" stroke="#ef4444" strokeDasharray="5 5" strokeWidth={2} name="usdTarget" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
+        <Card>
+          <CardHeader>
+            <CardTitle>ZWG Revenue vs Target</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={revenueData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip formatter={(value, name) => [
+                  `ZWG ${(value as number).toLocaleString()}`, 
+                  name === 'zwgRevenue' ? 'Actual ZWG' : 'Target ZWG'
+                ]} />
+                <Line type="monotone" dataKey="zwgRevenue" stroke="#3b82f6" strokeWidth={2} name="zwgRevenue" />
+                <Line type="monotone" dataKey="zwgTarget" stroke="#ef4444" strokeDasharray="5 5" strokeWidth={2} name="zwgTarget" />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Industry Distribution</CardTitle>
@@ -141,6 +176,32 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
             </ResponsiveContainer>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Consolidated Revenue (USD)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={revenueData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip formatter={(value, name) => {
+                  if (name === 'consolidatedRevenue') {
+                    return [`$${(value as number).toLocaleString()}`, 'Consolidated USD'];
+                  }
+                  return [value, name];
+                }} />
+                <Bar 
+                  dataKey={(data: any) => data.usdRevenue + (data.zwgRevenue / zwgToUsdRate)} 
+                  fill="#8b5cf6" 
+                  name="consolidatedRevenue"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Officer Performance */}
@@ -150,26 +211,29 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {officerPerformance.map((officer) => (
-              <div key={officer.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div className="flex-1">
-                  <div className="font-medium">{officer.name}</div>
-                  <div className="text-sm text-gray-600">{officer.merchants} merchants</div>
+            {officerPerformance.map((officer) => {
+              const consolidatedRevenue = officer.usdRevenue + (officer.zwgRevenue / zwgToUsdRate);
+              return (
+                <div key={officer.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex-1">
+                    <div className="font-medium">{officer.name}</div>
+                    <div className="text-sm text-gray-600">{officer.merchants} merchants</div>
+                  </div>
+                  <div className="text-right flex-1">
+                    <div className="font-bold">${(consolidatedRevenue / 1000).toFixed(0)}K</div>
+                    <div className="text-sm text-gray-600">Consolidated Revenue</div>
+                  </div>
+                  <div className="text-right">
+                    <Badge 
+                      variant={officer.activityRatio >= 70 ? 'default' : 'secondary'}
+                      className={getActivityRatioBadgeColor(officer.activityRatio)}
+                    >
+                      {officer.activityRatio}% Activity
+                    </Badge>
+                  </div>
                 </div>
-                <div className="text-right flex-1">
-                  <div className="font-bold">${(officer.revenue / 1000).toFixed(0)}K</div>
-                  <div className="text-sm text-gray-600">Revenue</div>
-                </div>
-                <div className="text-right">
-                  <Badge 
-                    variant={officer.growth >= 0 ? 'default' : 'secondary'}
-                    className={officer.growth >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
-                  >
-                    {officer.growth > 0 ? '+' : ''}{officer.growth}%
-                  </Badge>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
