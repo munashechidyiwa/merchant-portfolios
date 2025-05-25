@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Shield, Users, Upload, FileText, BarChart3, Lock, Edit, Trash2, Plus } from "lucide-react";
+import { FileUpload } from "./FileUpload";
 
 interface AdminPanelProps {
   selectedOfficer: string;
@@ -185,18 +186,36 @@ export function AdminPanel({ selectedOfficer }: AdminPanelProps) {
         <TabsContent value="merchants" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Merchant Management</CardTitle>
+              <CardTitle>Merchant Data Upload</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button>
-                <Upload className="h-4 w-4 mr-2" />
-                Bulk Upload Merchants
-              </Button>
-              <Button variant="outline">
-                Add New Merchant
-              </Button>
-              <div className="text-sm text-gray-600">
-                Total merchants in system: 847 | Active: 723 | Inactive: 124
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FileUpload
+                  title="USD Merchant Report"
+                  description="Upload USD merchant transactions Excel file"
+                  uploadType="merchants"
+                  onFileUpload={(file) => handleMerchantUpload(file, 'USD')}
+                />
+                <FileUpload
+                  title="ZWG Merchant Report"
+                  description="Upload ZWG merchant transactions Excel file"
+                  uploadType="merchants"
+                  onFileUpload={(file) => handleMerchantUpload(file, 'ZWG')}
+                />
+              </div>
+              
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">Required Excel Columns:</h4>
+                <div className="text-sm text-blue-800 space-y-1">
+                  <div>• Terminal ID</div>
+                  <div>• Account CIF</div>
+                  <div>• Merchant Name</div>
+                  <div>• Support Officer</div>
+                  <div>• Business Unit</div>
+                  <div>• Branch Code</div>
+                  <div>• Month to Date Total</div>
+                  <div>• Daily totals (first day to last day of month)</div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -373,33 +392,45 @@ export function AdminPanel({ selectedOfficer }: AdminPanelProps) {
         <TabsContent value="uploads" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>File Uploads & Data Management</CardTitle>
+              <CardTitle>Terminal Data Upload</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Merchant Data</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="w-full">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload Merchant CSV
-                    </Button>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Terminal Data</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="w-full">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload Terminal Data
-                    </Button>
-                  </CardContent>
-                </Card>
+            <CardContent>
+              <FileUpload
+                title="Terminal Information"
+                description="Upload terminal details batch file"
+                uploadType="terminals"
+                onFileUpload={handleTerminalUpload}
+              />
+              
+              <div className="mt-6 p-4 bg-green-50 rounded-lg">
+                <h4 className="font-medium text-green-900 mb-2">Terminal Upload Information:</h4>
+                <div className="text-sm text-green-800 space-y-1">
+                  <div>• Terminal status (Active/Inactive) will be automatically determined</div>
+                  <div>• Status is based on recent transaction activity from merchant reports</div>
+                  <div>• Terminals without recent transactions will be marked as Inactive</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Data Processing Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">{processedData.totalTerminals}</div>
+                  <div className="text-sm text-gray-600">Total Terminals</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">{processedData.activeTerminals}</div>
+                  <div className="text-sm text-gray-600">Active Terminals</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <div className="text-2xl font-bold text-orange-600">{processedData.activityRatio.toFixed(1)}%</div>
+                  <div className="text-sm text-gray-600">Activity Ratio</div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -407,4 +438,36 @@ export function AdminPanel({ selectedOfficer }: AdminPanelProps) {
       </Tabs>
     </div>
   );
+
+  // Add these new functions before the return statement
+  const [processedData, setProcessedData] = React.useState({
+    totalTerminals: 0,
+    activeTerminals: 0,
+    activityRatio: 0
+  });
+
+  const handleMerchantUpload = async (file: File, currency: 'USD' | 'ZWG') => {
+    try {
+      const { dataProcessor } = await import('@/utils/dataProcessing');
+      await dataProcessor.processMerchantReport(file, currency);
+      dataProcessor.updateTerminalStatus();
+      const data = dataProcessor.getProcessedData();
+      setProcessedData(data);
+      console.log(`${currency} merchant data uploaded successfully`);
+    } catch (error) {
+      console.error('Error uploading merchant data:', error);
+    }
+  };
+
+  const handleTerminalUpload = async (file: File) => {
+    try {
+      const { dataProcessor } = await import('@/utils/dataProcessing');
+      await dataProcessor.processTerminalData(file);
+      const data = dataProcessor.getProcessedData();
+      setProcessedData(data);
+      console.log('Terminal data uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading terminal data:', error);
+    }
+  };
 }
