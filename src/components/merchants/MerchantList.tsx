@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Filter, Plus, Eye, Edit } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Search, Filter, Plus, Eye, Edit, RefreshCw, Download, FileText } from "lucide-react";
 
 interface MerchantListProps {
   selectedOfficer: string;
@@ -17,10 +18,13 @@ const mockMerchants = [
     id: 'M001',
     name: 'Sunset Cafe',
     category: 'Restaurant',
-    officer: 'Sarah Johnson',
+    officer: 'Takudzwa Madyira',
     status: 'Active',
     terminals: 3,
-    revenue: 45000,
+    zwgSales: 125000,
+    usdSales: 35000,
+    consolidatedUSD: 69896,
+    contribution: 8.2,
     lastActivity: '2024-01-20',
     industry: 'Food & Beverage'
   },
@@ -28,10 +32,13 @@ const mockMerchants = [
     id: 'M002',
     name: 'Tech Solutions Inc',
     category: 'Technology',
-    officer: 'Michael Chen',
+    officer: 'Olivia Usai',
     status: 'Active',
     terminals: 8,
-    revenue: 125000,
+    zwgSales: 358000,
+    usdSales: 125000,
+    consolidatedUSD: 225000,
+    contribution: 12.5,
     lastActivity: '2024-01-19',
     industry: 'Technology'
   },
@@ -39,10 +46,13 @@ const mockMerchants = [
     id: 'M003',
     name: 'Fashion Boutique',
     category: 'Retail',
-    officer: 'Emily Rodriguez',
+    officer: 'Tinashe Mariridza',
     status: 'Inactive',
     terminals: 2,
-    revenue: 28000,
+    zwgSales: 89600,
+    usdSales: 28000,
+    consolidatedUSD: 53033,
+    contribution: 6.1,
     lastActivity: '2024-01-15',
     industry: 'Retail'
   },
@@ -50,48 +60,105 @@ const mockMerchants = [
     id: 'M004',
     name: 'Medical Center',
     category: 'Healthcare',
-    officer: 'David Thompson',
+    officer: 'Mufaro Maphosa',
     status: 'Active',
     terminals: 5,
-    revenue: 89000,
+    zwgSales: 268000,
+    usdSales: 89000,
+    consolidatedUSD: 163866,
+    contribution: 9.8,
     lastActivity: '2024-01-20',
     industry: 'Healthcare'
   },
 ];
+
+const officers = {
+  'officer1': 'Takudzwa Madyira',
+  'officer2': 'Olivia Usai',
+  'officer3': 'Tinashe Mariridza',
+  'officer4': 'Mufaro Maphosa',
+};
 
 export function MerchantList({ selectedOfficer }: MerchantListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
 
+  const resetFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setCategoryFilter('all');
+  };
+
   const filteredMerchants = mockMerchants.filter(merchant => {
     const matchesSearch = merchant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          merchant.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || merchant.status.toLowerCase() === statusFilter;
     const matchesCategory = categoryFilter === 'all' || merchant.category.toLowerCase() === categoryFilter;
-    const matchesOfficer = selectedOfficer === 'all' || merchant.officer === getOfficerName(selectedOfficer);
+    const matchesOfficer = selectedOfficer === 'all' || merchant.officer === officers[selectedOfficer as keyof typeof officers];
     
     return matchesSearch && matchesStatus && matchesCategory && matchesOfficer;
   });
 
-  function getOfficerName(officerId: string): string {
-    const officers: { [key: string]: string } = {
-      'officer1': 'Sarah Johnson',
-      'officer2': 'Michael Chen',
-      'officer3': 'Emily Rodriguez',
-      'officer4': 'David Thompson',
-      'officer5': 'Lisa Wang',
-      'officer6': 'James Wilson',
-    };
-    return officers[officerId] || '';
-  }
+  const handleExport = (format: 'csv' | 'excel') => {
+    const csvContent = [
+      ['Merchant ID', 'Merchant Name', 'Officer', 'Category', 'Status', 'Terminals', 'ZWG Sales', 'USD Sales', 'Consolidated USD', '% Contribution', 'Last Activity'],
+      ...filteredMerchants.map(merchant => [
+        merchant.id,
+        merchant.name,
+        merchant.officer,
+        merchant.category,
+        merchant.status,
+        merchant.terminals,
+        `ZWG ${merchant.zwgSales.toLocaleString()}`,
+        `$${merchant.usdSales.toLocaleString()}`,
+        `$${merchant.consolidatedUSD.toLocaleString()}`,
+        `${merchant.contribution}%`,
+        new Date(merchant.lastActivity).toLocaleDateString()
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: format === 'csv' ? 'text/csv' : 'application/vnd.ms-excel' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `merchant-list-${new Date().toISOString().split('T')[0]}.${format === 'csv' ? 'csv' : 'xls'}`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-6">
       {/* Filters and Search */}
       <Card>
         <CardHeader>
-          <CardTitle>Merchant Management</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Merchant Management</CardTitle>
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" onClick={resetFilters}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => handleExport('csv')}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Export as CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExport('excel')}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Export as Excel
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4 mb-6">
@@ -145,9 +212,11 @@ export function MerchantList({ selectedOfficer }: MerchantListProps) {
                   <TableHead>Category</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Terminals</TableHead>
-                  <TableHead>Revenue</TableHead>
+                  <TableHead>ZWG Sales</TableHead>
+                  <TableHead>USD Sales</TableHead>
+                  <TableHead>Consolidated USD</TableHead>
+                  <TableHead>% Contribution</TableHead>
                   <TableHead>Last Activity</TableHead>
-                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -172,18 +241,11 @@ export function MerchantList({ selectedOfficer }: MerchantListProps) {
                       </Badge>
                     </TableCell>
                     <TableCell>{merchant.terminals}</TableCell>
-                    <TableCell>${merchant.revenue.toLocaleString()}</TableCell>
+                    <TableCell>ZWG {merchant.zwgSales.toLocaleString()}</TableCell>
+                    <TableCell>${merchant.usdSales.toLocaleString()}</TableCell>
+                    <TableCell>${merchant.consolidatedUSD.toLocaleString()}</TableCell>
+                    <TableCell>{merchant.contribution}%</TableCell>
                     <TableCell>{new Date(merchant.lastActivity).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

@@ -10,16 +10,52 @@ interface DashboardOverviewProps {
   selectedOfficer: string;
 }
 
-const mockData = {
-  totalMerchants: 847,
-  activeMerchants: 723,
-  totalTerminals: 1234,
-  activeTerminals: 1089,
-  monthlyRevenueUSD: 1256789,
-  monthlyRevenueZWG: 4500000,
-  zwgToUsdRate: 3.58,
-  revenueGrowth: 12.5,
-  activityRate: 88.3
+const officerData = {
+  'officer1': { // Takudzwa Madyira
+    merchants: 142,
+    activeMerchants: 121,
+    terminals: 205,
+    activeTerminals: 178,
+    monthlyRevenueUSD: 245000,
+    monthlyRevenueZWG: 876000,
+    activityRate: 86.8
+  },
+  'officer2': { // Olivia Usai
+    merchants: 156,
+    activeMerchants: 134,
+    terminals: 218,
+    activeTerminals: 195,
+    monthlyRevenueUSD: 287000,
+    monthlyRevenueZWG: 1028000,
+    activityRate: 89.4
+  },
+  'officer3': { // Tinashe Mariridza
+    merchants: 138,
+    activeMerchants: 118,
+    terminals: 198,
+    activeTerminals: 172,
+    monthlyRevenueUSD: 234000,
+    monthlyRevenueZWG: 838000,
+    activityRate: 86.9
+  },
+  'officer4': { // Mufaro Maphosa
+    merchants: 147,
+    activeMerchants: 125,
+    terminals: 210,
+    activeTerminals: 183,
+    monthlyRevenueUSD: 265000,
+    monthlyRevenueZWG: 949000,
+    activityRate: 87.1
+  },
+  'all': {
+    merchants: 847,
+    activeMerchants: 723,
+    terminals: 1234,
+    activeTerminals: 1089,
+    monthlyRevenueUSD: 1256789,
+    monthlyRevenueZWG: 4500000,
+    activityRate: 88.3
+  }
 };
 
 const chartData = [
@@ -37,7 +73,9 @@ const pieData = [
 ];
 
 export function DashboardOverview({ selectedOfficer }: DashboardOverviewProps) {
-  const consolidatedRevenue = mockData.monthlyRevenueUSD + (mockData.monthlyRevenueZWG / mockData.zwgToUsdRate);
+  const mockData = officerData[selectedOfficer as keyof typeof officerData] || officerData.all;
+  const zwgToUsdRate = 3.58;
+  const consolidatedRevenue = mockData.monthlyRevenueUSD + (mockData.monthlyRevenueZWG / zwgToUsdRate);
 
   return (
     <div className="space-y-6">
@@ -49,7 +87,7 @@ export function DashboardOverview({ selectedOfficer }: DashboardOverviewProps) {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockData.totalMerchants.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{mockData.merchants.toLocaleString()}</div>
             <div className="flex items-center text-xs text-muted-foreground">
               <Badge variant="secondary" className="bg-green-100 text-green-800">
                 {mockData.activeMerchants} Active
@@ -93,12 +131,12 @@ export function DashboardOverview({ selectedOfficer }: DashboardOverviewProps) {
                   <span className="text-xl font-bold">${(consolidatedRevenue / 1000000).toFixed(2)}M</span>
                 </div>
                 <div className="text-xs text-gray-500">
-                  Rate: 1 USD = {mockData.zwgToUsdRate} ZWG
+                  Rate: 1 USD = {zwgToUsdRate} ZWG
                 </div>
               </div>
               <div className="flex items-center text-xs text-green-600">
                 <TrendingUp className="h-3 w-3 mr-1" />
-                +{mockData.revenueGrowth}% from last month
+                +12.5% from last month
               </div>
             </div>
           </CardContent>
@@ -149,12 +187,15 @@ export function DashboardOverview({ selectedOfficer }: DashboardOverviewProps) {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={pieData}
+                  data={[
+                    { name: 'Active', value: mockData.activityRate, color: '#10b981' },
+                    { name: 'Inactive', value: 100 - mockData.activityRate, color: '#ef4444' },
+                  ]}
                   cx="50%"
                   cy="50%"
                   outerRadius={80}
                   dataKey="value"
-                  label={({ name, value }) => `${name}: ${value}%`}
+                  label={({ name, value }) => `${name}: ${value.toFixed(1)}%`}
                 >
                   {pieData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -168,23 +209,25 @@ export function DashboardOverview({ selectedOfficer }: DashboardOverviewProps) {
       </div>
 
       {/* Officer Performance Quick View */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Officer Performance Summary</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {['Takudzwa Madyira', 'Olivia Usai', 'Tinashe Mariridza', 'Mufaro Maphosa', 'Lisa Wang', 'James Wilson'].map((officer, index) => (
-              <div key={officer} className="text-center p-4 bg-gray-50 rounded-lg">
-                <div className="text-sm font-medium text-gray-600">{officer}</div>
-                <div className="text-lg font-bold text-gray-900">{120 + index * 15}</div>
-                <div className="text-xs text-gray-500">Merchants</div>
-                <Progress value={85 + index * 2} className="mt-2" />
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {selectedOfficer === 'all' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Officer Performance Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {['Takudzwa Madyira', 'Olivia Usai', 'Tinashe Mariridza', 'Mufaro Maphosa'].map((officer, index) => (
+                <div key={officer} className="text-center p-4 bg-gray-50 rounded-lg">
+                  <div className="text-sm font-medium text-gray-600">{officer}</div>
+                  <div className="text-lg font-bold text-gray-900">{120 + index * 15}</div>
+                  <div className="text-xs text-gray-500">Merchants</div>
+                  <Progress value={85 + index * 2} className="mt-2" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

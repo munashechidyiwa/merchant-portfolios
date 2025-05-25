@@ -18,8 +18,6 @@ const officers = [
   { id: 'officer2', name: 'Olivia Usai', color: 'bg-green-100' },
   { id: 'officer3', name: 'Tinashe Mariridza', color: 'bg-purple-100' },
   { id: 'officer4', name: 'Mufaro Maphosa', color: 'bg-orange-100' },
-  { id: 'officer5', name: 'Lisa Wang', color: 'bg-pink-100' },
-  { id: 'officer6', name: 'James Wilson', color: 'bg-indigo-100' },
 ];
 
 const viewTitles = {
@@ -29,80 +27,89 @@ const viewTitles = {
   analytics: 'Performance Analytics',
   communication: 'Communication Log',
   reports: 'Reports & Export',
-  alerts: 'Alerts & Notifications'
+  alerts: 'Alerts & Notifications',
+  admin: 'Admin Panel'
 };
 
-const handleExport = (format: 'csv' | 'excel') => {
-  // Mock data for export
-  const dashboardData = {
-    totalTerminals: 1234,
-    activeTerminals: 1089,
-    inactiveTerminals: 145,
-    totalMerchants: 847,
+const officerData = {
+  'officer1': { // Takudzwa Madyira
+    merchants: 142,
+    activeMerchants: 121,
+    terminals: 205,
+    activeTerminals: 178,
+    monthlyRevenueUSD: 245000,
+    monthlyRevenueZWG: 876000,
+    activityRate: 86.8
+  },
+  'officer2': { // Olivia Usai
+    merchants: 156,
+    activeMerchants: 134,
+    terminals: 218,
+    activeTerminals: 195,
+    monthlyRevenueUSD: 287000,
+    monthlyRevenueZWG: 1028000,
+    activityRate: 89.4
+  },
+  'officer3': { // Tinashe Mariridza
+    merchants: 138,
+    activeMerchants: 118,
+    terminals: 198,
+    activeTerminals: 172,
+    monthlyRevenueUSD: 234000,
+    monthlyRevenueZWG: 838000,
+    activityRate: 86.9
+  },
+  'officer4': { // Mufaro Maphosa
+    merchants: 147,
+    activeMerchants: 125,
+    terminals: 210,
+    activeTerminals: 183,
+    monthlyRevenueUSD: 265000,
+    monthlyRevenueZWG: 949000,
+    activityRate: 87.1
+  },
+  'all': {
+    merchants: 847,
     activeMerchants: 723,
+    terminals: 1234,
+    activeTerminals: 1089,
     monthlyRevenueUSD: 1256789,
     monthlyRevenueZWG: 4500000,
-    consolidatedRevenueUSD: 2513578,
-    activityRate: 88.3,
-    officers: officers.slice(1).map(officer => ({
-      name: officer.name,
-      merchants: Math.floor(Math.random() * 50) + 120,
-      performance: Math.floor(Math.random() * 15) + 85
-    }))
-  };
-
-  if (format === 'csv') {
-    const csvContent = [
-      ['Metric', 'Value'],
-      ['Total Terminals', dashboardData.totalTerminals],
-      ['Active Terminals', dashboardData.activeTerminals],
-      ['Inactive Terminals', dashboardData.inactiveTerminals],
-      ['Total Merchants', dashboardData.totalMerchants],
-      ['Active Merchants', dashboardData.activeMerchants],
-      ['Monthly Revenue USD', `$${dashboardData.monthlyRevenueUSD.toLocaleString()}`],
-      ['Monthly Revenue ZWG', `ZWG ${dashboardData.monthlyRevenueZWG.toLocaleString()}`],
-      ['Consolidated Revenue USD', `$${dashboardData.consolidatedRevenueUSD.toLocaleString()}`],
-      ['Activity Rate', `${dashboardData.activityRate}%`],
-      ['', ''],
-      ['Officer Performance', ''],
-      ['Officer Name', 'Merchants', 'Performance %'],
-      ...dashboardData.officers.map(officer => [officer.name, officer.merchants, `${officer.performance}%`])
-    ].map(row => row.join(',')).join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `dashboard-report-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  } else {
-    // For Excel format, we'll create a simple tab-separated format
-    const excelContent = [
-      ['Metric', 'Value'],
-      ['Total Terminals', dashboardData.totalTerminals],
-      ['Active Terminals', dashboardData.activeTerminals],
-      ['Inactive Terminals', dashboardData.inactiveTerminals],
-      ['Total Merchants', dashboardData.totalMerchants],
-      ['Active Merchants', dashboardData.activeMerchants],
-      ['Monthly Revenue USD', `$${dashboardData.monthlyRevenueUSD.toLocaleString()}`],
-      ['Monthly Revenue ZWG', `ZWG ${dashboardData.monthlyRevenueZWG.toLocaleString()}`],
-      ['Consolidated Revenue USD', `$${dashboardData.consolidatedRevenueUSD.toLocaleString()}`],
-      ['Activity Rate', `${dashboardData.activityRate}%`],
-      ['', ''],
-      ['Officer Performance', ''],
-      ['Officer Name', 'Merchants', 'Performance %'],
-      ...dashboardData.officers.map(officer => [officer.name, officer.merchants, `${officer.performance}%`])
-    ].map(row => row.join('\t')).join('\n');
-
-    const blob = new Blob([excelContent], { type: 'application/vnd.ms-excel' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `dashboard-report-${new Date().toISOString().split('T')[0]}.xls`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    activityRate: 88.3
   }
+};
+
+const handleExport = (format: 'csv' | 'excel', selectedOfficer: string) => {
+  const dashboardData = officerData[selectedOfficer as keyof typeof officerData] || officerData.all;
+  const zwgToUsdRate = 3.58;
+  const consolidatedRevenueUSD = dashboardData.monthlyRevenueUSD + (dashboardData.monthlyRevenueZWG / zwgToUsdRate);
+  const officerName = officers.find(o => o.id === selectedOfficer)?.name || 'All Officers';
+  
+  const csvContent = [
+    ['Dashboard Report', `Officer: ${officerName}`],
+    ['Generated On', new Date().toLocaleDateString()],
+    ['', ''],
+    ['Metric', 'Value'],
+    ['Total Merchants', dashboardData.merchants],
+    ['Active Merchants', dashboardData.activeMerchants],
+    ['Inactive Merchants', dashboardData.merchants - dashboardData.activeMerchants],
+    ['Total Terminals', dashboardData.terminals],
+    ['Active Terminals', dashboardData.activeTerminals],
+    ['Inactive Terminals', dashboardData.terminals - dashboardData.activeTerminals],
+    ['Monthly Revenue USD', `$${dashboardData.monthlyRevenueUSD.toLocaleString()}`],
+    ['Monthly Revenue ZWG', `ZWG ${dashboardData.monthlyRevenueZWG.toLocaleString()}`],
+    ['Consolidated Revenue USD', `$${consolidatedRevenueUSD.toLocaleString()}`],
+    ['ZWG to USD Rate', zwgToUsdRate],
+    ['Activity Rate', `${dashboardData.activityRate}%`]
+  ].map(row => row.join(',')).join('\n');
+
+  const blob = new Blob([csvContent], { type: format === 'csv' ? 'text/csv' : 'application/vnd.ms-excel' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `dashboard-report-${officerName.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.${format === 'csv' ? 'csv' : 'xls'}`;
+  a.click();
+  window.URL.revokeObjectURL(url);
 };
 
 export function DashboardHeader({ selectedOfficer, setSelectedOfficer, activeView }: DashboardHeaderProps) {
@@ -150,11 +157,11 @@ export function DashboardHeader({ selectedOfficer, setSelectedOfficer, activeVie
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => handleExport('csv')}>
+              <DropdownMenuItem onClick={() => handleExport('csv', selectedOfficer)}>
                 <FileText className="h-4 w-4 mr-2" />
                 Export as CSV
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('excel')}>
+              <DropdownMenuItem onClick={() => handleExport('excel', selectedOfficer)}>
                 <FileText className="h-4 w-4 mr-2" />
                 Export as Excel
               </DropdownMenuItem>
