@@ -39,6 +39,39 @@ export function AdminPanel({ selectedOfficer }: AdminPanelProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
+  // Initialize processedData state at the beginning
+  const [processedData, setProcessedData] = useState({
+    totalTerminals: 0,
+    activeTerminals: 0,
+    activityRatio: 0
+  });
+
+  // Define handler functions before they are used
+  const handleMerchantUpload = async (file: File, currency: 'USD' | 'ZWG') => {
+    try {
+      const { dataProcessor } = await import('@/utils/dataProcessing');
+      await dataProcessor.processMerchantReport(file, currency);
+      dataProcessor.updateTerminalStatus();
+      const data = dataProcessor.getProcessedData();
+      setProcessedData(data);
+      console.log(`${currency} merchant data uploaded successfully`);
+    } catch (error) {
+      console.error('Error uploading merchant data:', error);
+    }
+  };
+
+  const handleTerminalUpload = async (file: File) => {
+    try {
+      const { dataProcessor } = await import('@/utils/dataProcessing');
+      await dataProcessor.processTerminalData(file);
+      const data = dataProcessor.getProcessedData();
+      setProcessedData(data);
+      console.log('Terminal data uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading terminal data:', error);
+    }
+  };
+
   const handleLogin = () => {
     if (password === 'admin123') {
       setIsAuthenticated(true);
@@ -438,36 +471,4 @@ export function AdminPanel({ selectedOfficer }: AdminPanelProps) {
       </Tabs>
     </div>
   );
-
-  // Add these new functions before the return statement
-  const [processedData, setProcessedData] = React.useState({
-    totalTerminals: 0,
-    activeTerminals: 0,
-    activityRatio: 0
-  });
-
-  const handleMerchantUpload = async (file: File, currency: 'USD' | 'ZWG') => {
-    try {
-      const { dataProcessor } = await import('@/utils/dataProcessing');
-      await dataProcessor.processMerchantReport(file, currency);
-      dataProcessor.updateTerminalStatus();
-      const data = dataProcessor.getProcessedData();
-      setProcessedData(data);
-      console.log(`${currency} merchant data uploaded successfully`);
-    } catch (error) {
-      console.error('Error uploading merchant data:', error);
-    }
-  };
-
-  const handleTerminalUpload = async (file: File) => {
-    try {
-      const { dataProcessor } = await import('@/utils/dataProcessing');
-      await dataProcessor.processTerminalData(file);
-      const data = dataProcessor.getProcessedData();
-      setProcessedData(data);
-      console.log('Terminal data uploaded successfully');
-    } catch (error) {
-      console.error('Error uploading terminal data:', error);
-    }
-  };
 }
