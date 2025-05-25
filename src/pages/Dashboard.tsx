@@ -15,6 +15,10 @@ import { AdminPanel } from "@/components/admin/AdminPanel";
 const Dashboard = () => {
   const [activeView, setActiveView] = useState('overview');
   const [selectedOfficer, setSelectedOfficer] = useState('all');
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+
+  // Check if user is in admin panel and authenticated
+  const isAdmin = activeView === 'admin' && isAdminAuthenticated;
 
   const renderContent = () => {
     switch (activeView) {
@@ -27,11 +31,11 @@ const Dashboard = () => {
       case 'analytics':
         return <PerformanceAnalytics selectedOfficer={selectedOfficer} />;
       case 'communication':
-        return <CommunicationLog selectedOfficer={selectedOfficer} />;
+        return <CommunicationLog selectedOfficer={selectedOfficer} isAdmin={isAdmin} />;
       case 'reports':
         return <ReportsSection selectedOfficer={selectedOfficer} />;
       case 'alerts':
-        return <AlertsPanel selectedOfficer={selectedOfficer} />;
+        return <AlertsPanel selectedOfficer={selectedOfficer} isAdmin={isAdmin} />;
       case 'admin':
         return <AdminPanel selectedOfficer={selectedOfficer} />;
       default:
