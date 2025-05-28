@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, Activity, Users } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, Activity, Users, RefreshCw, Download } from "lucide-react";
 
 interface PerformanceAnalyticsProps {
   selectedOfficer: string;
@@ -31,10 +32,16 @@ const industryData = [
   { name: 'Food & Beverage', value: 28, color: '#10b981' },
   { name: 'Healthcare', value: 18, color: '#f59e0b' },
   { name: 'Technology', value: 12, color: '#ef4444' },
-  { name: 'Other', value: 7, color: '#8b5cf6' },
+  { name: 'Insurance', value: 7, color: '#8b5cf6' },
 ];
 
 export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsProps) {
+  const [filters, setFilters] = useState({
+    dateRange: '',
+    industry: '',
+    officer: ''
+  });
+
   const zwgToUsdRate = 3.58;
   
   const getActivityRatioColor = (ratio: number) => {
@@ -45,8 +52,70 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
     return ratio >= 70 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
   };
 
+  const handleRefresh = () => {
+    setFilters({
+      dateRange: '',
+      industry: '',
+      officer: ''
+    });
+    // Add logic to refresh data
+    console.log('Refreshing performance analytics data...');
+  };
+
+  const handleExport = () => {
+    // Export filtered data
+    const filteredData = {
+      filters,
+      revenueData,
+      officerPerformance,
+      industryData
+    };
+    console.log('Exporting filtered data:', filteredData);
+    // Here you would implement actual export functionality
+  };
+
   return (
     <div className="space-y-6">
+      {/* Header with filters and actions */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-wrap gap-2">
+          <Select value={filters.dateRange} onValueChange={(value) => setFilters({...filters, dateRange: value})}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Date Range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="last-7-days">Last 7 days</SelectItem>
+              <SelectItem value="last-30-days">Last 30 days</SelectItem>
+              <SelectItem value="last-90-days">Last 90 days</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={filters.industry} onValueChange={(value) => setFilters({...filters, industry: value})}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Industry" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="retail">Retail</SelectItem>
+              <SelectItem value="food-beverage">Food & Beverage</SelectItem>
+              <SelectItem value="healthcare">Healthcare</SelectItem>
+              <SelectItem value="technology">Technology</SelectItem>
+              <SelectItem value="insurance">Insurance</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+          <Button variant="outline" onClick={handleExport}>
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        </div>
+      </div>
+
       {/* Key Performance Indicators */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>

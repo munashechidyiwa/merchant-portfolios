@@ -1,10 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, ReferenceLine } from 'recharts';
-import { TrendingUp, TrendingDown, Users, Monitor, DollarSign, Activity } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, Monitor, DollarSign, Activity, RefreshCw, Download } from "lucide-react";
 
 interface DashboardOverviewProps {
   selectedOfficer: string;
@@ -82,6 +84,11 @@ const pieData = [
 ];
 
 export function DashboardOverview({ selectedOfficer }: DashboardOverviewProps) {
+  const [filters, setFilters] = useState({
+    dateRange: '',
+    metric: ''
+  });
+
   const mockData = officerData[selectedOfficer as keyof typeof officerData] || officerData.all;
   const zwgToUsdRate = 3.58;
   const consolidatedRevenue = mockData.monthlyRevenueUSD + (mockData.monthlyRevenueZWG / zwgToUsdRate);
@@ -94,8 +101,64 @@ export function DashboardOverview({ selectedOfficer }: DashboardOverviewProps) {
     return ratio >= 70 ? 'bg-green-100' : 'bg-red-100';
   };
 
+  const handleRefresh = () => {
+    setFilters({
+      dateRange: '',
+      metric: ''
+    });
+    console.log('Refreshing dashboard data...');
+  };
+
+  const handleExport = () => {
+    const exportData = {
+      filters,
+      officerData: mockData,
+      zwgTurnoverData,
+      usdTurnoverData
+    };
+    console.log('Exporting filtered dashboard data:', exportData);
+  };
+
   return (
     <div className="space-y-6">
+      {/* Header with filters and actions */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-wrap gap-2">
+          <Select value={filters.dateRange} onValueChange={(value) => setFilters({...filters, dateRange: value})}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Date Range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="last-7-days">Last 7 days</SelectItem>
+              <SelectItem value="last-30-days">Last 30 days</SelectItem>
+              <SelectItem value="last-90-days">Last 90 days</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={filters.metric} onValueChange={(value) => setFilters({...filters, metric: value})}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Metric" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="revenue">Revenue</SelectItem>
+              <SelectItem value="activity">Activity</SelectItem>
+              <SelectItem value="merchants">Merchants</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+          <Button variant="outline" onClick={handleExport}>
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        </div>
+      </div>
+
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="hover:shadow-lg transition-shadow">
