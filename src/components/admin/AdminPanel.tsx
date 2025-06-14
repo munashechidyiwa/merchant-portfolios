@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Users, Upload, FileText, BarChart3, Lock, MessageSquare } from "lucide-react";
 import { FileUpload } from "./FileUpload";
 import { UserManagement } from "./UserManagement";
+import { MerchantManagement } from "./MerchantManagement";
 
 interface AdminPanelProps {
   selectedOfficer: string;
@@ -122,7 +122,7 @@ export function AdminPanel({ selectedOfficer }: AdminPanelProps) {
           <p className="text-gray-600">System administration and management</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={handleGenerateAutoCommunications}>
+          <Button onClick={() => console.log('Generating auto communications...')}>
             <MessageSquare className="h-4 w-4 mr-2" />
             Generate Auto Communications
           </Button>
@@ -195,33 +195,7 @@ export function AdminPanel({ selectedOfficer }: AdminPanelProps) {
         </TabsContent>
 
         <TabsContent value="merchants" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Merchant Data Upload</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FileUpload
-                  title="USD Merchant Report"
-                  description="Upload USD merchant transactions Excel file"
-                  uploadType="merchants"
-                  onFileUpload={(file) => handleMerchantUpload(file, 'USD')}
-                />
-                <FileUpload
-                  title="ZWG Merchant Report"
-                  description="Upload ZWG merchant transactions Excel file"
-                  uploadType="merchants"
-                  onFileUpload={(file) => handleMerchantUpload(file, 'ZWG')}
-                />
-                <FileUpload
-                  title="Merchant Data"
-                  description="Upload general merchant data Excel file"
-                  uploadType="merchant-data"
-                  onFileUpload={handleMerchantDataUpload}
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <MerchantManagement />
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-6">
@@ -256,7 +230,7 @@ export function AdminPanel({ selectedOfficer }: AdminPanelProps) {
                 title="Terminal Information"
                 description="Upload terminal details batch file"
                 uploadType="terminals"
-                onFileUpload={handleTerminalUpload}
+                onFileUpload={(file) => console.log('Terminal upload:', file.name)}
               />
               
               <div className="mt-6 p-4 bg-green-50 rounded-lg">
