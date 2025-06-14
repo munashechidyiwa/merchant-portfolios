@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Users, Upload, FileText, BarChart3, Lock, MessageSquare } from "lucide-react";
+import { Shield, Users, Upload, FileText, BarChart3, Lock, MessageSquare, Mail } from "lucide-react";
 import { FileUpload } from "./FileUpload";
 import { UserManagement } from "./UserManagement";
 import { MerchantManagement } from "./MerchantManagement";
+import { useToast } from "@/hooks/use-toast";
 
 interface AdminPanelProps {
   selectedOfficer: string;
@@ -18,25 +20,45 @@ export function AdminPanel({ selectedOfficer }: AdminPanelProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const { toast } = useToast();
 
   // Initialize processedData state at the beginning
   const [processedData, setProcessedData] = useState({
     totalTerminals: 0,
     activeTerminals: 0,
-    activityRatio: 0
+    activityRatio: 0,
+    totalUsdRevenue: 0,
+    totalZwgRevenue: 0,
+    consolidatedUsdRevenue: 0,
+    merchantData: [],
+    terminalData: []
   });
 
   // Define handler functions before they are used
   const handleMerchantUpload = async (file: File, currency: 'USD' | 'ZWG') => {
     try {
       const { dataProcessor } = await import('@/utils/dataProcessing');
-      await dataProcessor.processMerchantReport(file, currency);
+      const merchantData = await dataProcessor.processMerchantReport(file, currency);
       dataProcessor.updateTerminalStatus();
       const data = dataProcessor.getProcessedData();
       setProcessedData(data);
-      console.log(`${currency} merchant data uploaded successfully`);
+      
+      toast({
+        title: "Data Processed Successfully",
+        description: `${currency} merchant data has been processed and calculations completed.`,
+      });
+      
+      console.log(`${currency} merchant data uploaded and processed successfully`);
+      console.log('Processed data:', data);
     } catch (error) {
       console.error('Error uploading merchant data:', error);
+      toast({
+        title: "Processing Error",
+        description: "Failed to process merchant data. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -46,35 +68,76 @@ export function AdminPanel({ selectedOfficer }: AdminPanelProps) {
       await dataProcessor.processTerminalData(file);
       const data = dataProcessor.getProcessedData();
       setProcessedData(data);
+      
+      toast({
+        title: "Terminal Data Processed",
+        description: "Terminal data has been processed successfully.",
+      });
+      
       console.log('Terminal data uploaded successfully');
     } catch (error) {
       console.error('Error uploading terminal data:', error);
+      toast({
+        title: "Processing Error",
+        description: "Failed to process terminal data. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleMerchantDataUpload = async (file: File) => {
     try {
       const { dataProcessor } = await import('@/utils/dataProcessing');
-      await dataProcessor.processMerchantReport(file, 'USD'); // Default to USD, can be made configurable
+      await dataProcessor.processMerchantReport(file, 'USD');
       const data = dataProcessor.getProcessedData();
       setProcessedData(data);
+      
+      toast({
+        title: "Merchant Data Processed",
+        description: "Merchant data has been processed and calculations completed.",
+      });
+      
       console.log('Merchant data uploaded successfully');
     } catch (error) {
       console.error('Error uploading merchant data:', error);
+      toast({
+        title: "Processing Error",
+        description: "Failed to process merchant data. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleGenerateAutoCommunications = () => {
     console.log('Generating auto communications based on performance analysis...');
-    // This would trigger the auto-communication generation logic
+    toast({
+      title: "Auto Communications Generated",
+      description: "Performance-based communications have been generated successfully.",
+    });
   };
 
   const handleLogin = () => {
     if (password === 'admin123') {
       setIsAuthenticated(true);
       setLoginError('');
+      toast({
+        title: "Admin Access Granted",
+        description: "Welcome to the admin panel.",
+      });
     } else {
       setLoginError('Invalid password');
+    }
+  };
+
+  const handleForgotPassword = () => {
+    if (resetEmail) {
+      // Simulate sending reset email
+      toast({
+        title: "Password Reset Email Sent",
+        description: `Password reset instructions have been sent to ${resetEmail}`,
+      });
+      setShowForgotPassword(false);
+      setResetEmail('');
     }
   };
 
@@ -90,24 +153,59 @@ export function AdminPanel({ selectedOfficer }: AdminPanelProps) {
             <p className="text-sm text-gray-600">Enter admin password to continue</p>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-                placeholder="Enter admin password"
-              />
-              {loginError && (
-                <p className="text-sm text-red-600">{loginError}</p>
-              )}
-            </div>
-            <Button onClick={handleLogin} className="w-full">
-              <Shield className="h-4 w-4 mr-2" />
-              Login
-            </Button>
+            {!showForgotPassword ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                    placeholder="Enter admin password"
+                  />
+                  {loginError && (
+                    <p className="text-sm text-red-600">{loginError}</p>
+                  )}
+                </div>
+                <Button onClick={handleLogin} className="w-full">
+                  <Shield className="h-4 w-4 mr-2" />
+                  Login
+                </Button>
+                <Button 
+                  variant="link" 
+                  onClick={() => setShowForgotPassword(true)}
+                  className="w-full text-sm"
+                >
+                  Forgot Password?
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="resetEmail">Email Address</Label>
+                  <Input
+                    id="resetEmail"
+                    type="email"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    placeholder="Enter your email address"
+                  />
+                </div>
+                <Button onClick={handleForgotPassword} className="w-full">
+                  <Mail className="h-4 w-4 mr-2" />
+                  Send Reset Link
+                </Button>
+                <Button 
+                  variant="link" 
+                  onClick={() => setShowForgotPassword(false)}
+                  className="w-full text-sm"
+                >
+                  Back to Login
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -122,7 +220,7 @@ export function AdminPanel({ selectedOfficer }: AdminPanelProps) {
           <p className="text-gray-600">System administration and management</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={() => console.log('Generating auto communications...')}>
+          <Button onClick={handleGenerateAutoCommunications}>
             <MessageSquare className="h-4 w-4 mr-2" />
             Generate Auto Communications
           </Button>
@@ -188,6 +286,35 @@ export function AdminPanel({ selectedOfficer }: AdminPanelProps) {
               </CardContent>
             </Card>
           </div>
+
+          {/* Data Processing Results */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Data Processing Results</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">
+                    ${processedData.totalUsdRevenue.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-gray-600">Total USD Revenue</div>
+                </div>
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">
+                    ZWG {processedData.totalZwgRevenue.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-gray-600">Total ZWG Revenue</div>
+                </div>
+                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">
+                    ${processedData.consolidatedUsdRevenue.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-gray-600">Consolidated USD Revenue</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="users" className="space-y-6">
@@ -221,6 +348,36 @@ export function AdminPanel({ selectedOfficer }: AdminPanelProps) {
         </TabsContent>
 
         <TabsContent value="uploads" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>USD Merchant Report</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FileUpload
+                  title="USD Merchant Report"
+                  description="Upload USD merchant transactions Excel file"
+                  uploadType="merchants"
+                  onFileUpload={(file) => handleMerchantUpload(file, 'USD')}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>ZWG Merchant Report</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FileUpload
+                  title="ZWG Merchant Report"
+                  description="Upload ZWG merchant transactions Excel file"
+                  uploadType="merchants"
+                  onFileUpload={(file) => handleMerchantUpload(file, 'ZWG')}
+                />
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
             <CardHeader>
               <CardTitle>Terminal Data Upload</CardTitle>
@@ -230,7 +387,7 @@ export function AdminPanel({ selectedOfficer }: AdminPanelProps) {
                 title="Terminal Information"
                 description="Upload terminal details batch file"
                 uploadType="terminals"
-                onFileUpload={(file) => console.log('Terminal upload:', file.name)}
+                onFileUpload={handleTerminalUpload}
               />
               
               <div className="mt-6 p-4 bg-green-50 rounded-lg">

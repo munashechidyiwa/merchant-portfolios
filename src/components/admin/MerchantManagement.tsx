@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { Search, RefreshCw, Download, FileText, MoreHorizontal, Plus, Edit, Tras
 import { FileUpload } from "./FileUpload";
 import { AddMerchantDialog } from "../merchants/AddMerchantDialog";
 import { EditMerchantDialog } from "./EditMerchantDialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface Merchant {
   id: string;
@@ -81,6 +81,7 @@ const officers = [
 ];
 
 export function MerchantManagement() {
+  const { toast } = useToast();
   const [merchants, setMerchants] = useState<Merchant[]>(initialMerchants);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -152,20 +153,88 @@ export function MerchantManagement() {
   const handleMerchantUpload = async (file: File, currency: 'USD' | 'ZWG') => {
     try {
       const { dataProcessor } = await import('@/utils/dataProcessing');
-      await dataProcessor.processMerchantReport(file, currency);
-      console.log(`Admin uploaded ${currency} merchant data`);
+      const merchantData = await dataProcessor.processMerchantReport(file, currency);
+      
+      // Update local merchants state with new data
+      const newMerchants = merchantData.map((data, index) => ({
+        id: `M${String(merchants.length + index + 1).padStart(3, '0')}`,
+        terminalId: data.terminalId,
+        accountCif: data.accountCif,
+        name: data.merchantName,
+        category: 'Imported',
+        officer: data.supportOfficer,
+        status: 'Active',
+        terminals: 1,
+        zwgSales: currency === 'ZWG' ? data.monthToDateTotal : 0,
+        usdSales: currency === 'USD' ? data.monthToDateTotal : 0,
+        consolidatedUSD: currency === 'USD' ? data.monthToDateTotal : data.monthToDateTotal / 3.58,
+        contribution: 0,
+        lastActivity: new Date().toISOString().split('T')[0],
+        sector: 'Imported',
+        businessUnit: data.businessUnit,
+        branchCode: data.branchCode,
+        location: ''
+      }));
+
+      setMerchants(prev => [...prev, ...newMerchants]);
+      
+      toast({
+        title: "Data Processed Successfully",
+        description: `${currency} merchant data uploaded and processed. ${newMerchants.length} merchants added.`,
+      });
+      
+      console.log(`Admin uploaded and processed ${currency} merchant data`);
     } catch (error) {
       console.error('Error uploading merchant data:', error);
+      toast({
+        title: "Processing Error",
+        description: "Failed to process merchant data. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   const handleMerchantDataUpload = async (file: File) => {
     try {
       const { dataProcessor } = await import('@/utils/dataProcessing');
-      await dataProcessor.processMerchantReport(file, 'USD');
+      const merchantData = await dataProcessor.processMerchantReport(file, 'USD');
+      
+      // Update local merchants state with new data
+      const newMerchants = merchantData.map((data, index) => ({
+        id: `M${String(merchants.length + index + 1).padStart(3, '0')}`,
+        terminalId: data.terminalId,
+        accountCif: data.accountCif,
+        name: data.merchantName,
+        category: 'Imported',
+        officer: data.supportOfficer,
+        status: 'Active',
+        terminals: 1,
+        zwgSales: 0,
+        usdSales: data.monthToDateTotal,
+        consolidatedUSD: data.monthToDateTotal,
+        contribution: 0,
+        lastActivity: new Date().toISOString().split('T')[0],
+        sector: 'Imported',
+        businessUnit: data.businessUnit,
+        branchCode: data.branchCode,
+        location: ''
+      }));
+
+      setMerchants(prev => [...prev, ...newMerchants]);
+      
+      toast({
+        title: "Data Processed Successfully",
+        description: `Merchant data uploaded and processed. ${newMerchants.length} merchants added.`,
+      });
+      
       console.log('Admin uploaded merchant data file');
     } catch (error) {
       console.error('Error uploading merchant data:', error);
+      toast({
+        title: "Processing Error",
+        description: "Failed to process merchant data. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -210,7 +279,8 @@ export function MerchantManagement() {
       {/* Batch Upload Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Merchant Data Upload</CardTitle>
+          <CardTitle>Merchant Data Upload & Processing</CardTitle>
+          <p className="text-sm text-gray-600">Upload Excel files to automatically process and add merchant data</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
