@@ -15,7 +15,7 @@ import { Footer } from "@/components/layout/Footer";
 
 export default function Dashboard() {
   // Officer selection state
-  const [selectedOfficer, setSelectedOfficer] = useState<string>("Takudzwa Madyira");
+  const [selectedOfficer, setSelectedOfficer] = useState<string>("officer1");
   
   // Active section state
   const [activeSection, setActiveSection] = useState<string>("overview");
@@ -56,7 +56,11 @@ export default function Dashboard() {
           <div className="flex items-center gap-4 border-b px-4 py-2">
             <SidebarTrigger />
             <div className="flex-1">
-              <DashboardHeader selectedOfficer={selectedOfficer} />
+              <DashboardHeader 
+                selectedOfficer={selectedOfficer} 
+                setSelectedOfficer={setSelectedOfficer}
+                activeView={activeSection}
+              />
             </div>
           </div>
           <div className="flex-1 p-6">

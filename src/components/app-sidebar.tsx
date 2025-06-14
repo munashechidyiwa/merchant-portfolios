@@ -23,8 +23,10 @@ import {
 } from "@/components/ui/sidebar";
 
 interface AppSidebarProps {
-  activeView: string;
-  setActiveView: (view: string) => void;
+  selectedOfficer: string;
+  onOfficerChange: (officer: string) => void;
+  activeSection: string;
+  onSectionChange: (section: string) => void;
 }
 
 const menuItems = [
@@ -50,7 +52,7 @@ const menuItems = [
   },
   {
     title: "Communication",
-    url: "communication",
+    url: "communications",
     icon: MessageSquare,
   },
   {
@@ -73,7 +75,7 @@ const adminItems = [
   },
 ];
 
-export function AppSidebar({ activeView, setActiveView }: AppSidebarProps) {
+export function AppSidebar({ selectedOfficer, onOfficerChange, activeSection, onSectionChange }: AppSidebarProps) {
   return (
     <Sidebar className="border-r border-gray-200">
       <SidebarHeader className="px-6 py-4 border-b border-gray-200">
@@ -88,9 +90,9 @@ export function AppSidebar({ activeView, setActiveView }: AppSidebarProps) {
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
-                    onClick={() => setActiveView(item.url)}
+                    onClick={() => onSectionChange(item.url)}
                     className={`w-full justify-start ${
-                      activeView === item.url 
+                      activeSection === item.url 
                         ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
@@ -111,9 +113,9 @@ export function AppSidebar({ activeView, setActiveView }: AppSidebarProps) {
               {adminItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
-                    onClick={() => setActiveView(item.url)}
+                    onClick={() => onSectionChange(item.url)}
                     className={`w-full justify-start ${
-                      activeView === item.url 
+                      activeSection === item.url 
                         ? 'bg-red-50 text-red-700 border-r-2 border-red-700' 
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
