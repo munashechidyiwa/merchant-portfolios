@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,8 @@ const initialMerchants: Merchant[] = [
   },
   {
     id: 'M002',
+    terminalId: 'T002',
+    accountCif: 'CIF002',
     name: 'Tech Solutions Inc',
     category: 'Technology',
     officer: 'Olivia Usai',
@@ -65,10 +68,15 @@ const initialMerchants: Merchant[] = [
     consolidatedUSD: 225000,
     contribution: 12.5,
     lastActivity: '2024-01-19',
-    industry: 'Technology'
+    sector: 'Technology',
+    businessUnit: 'Corporate Banking',
+    branchCode: 'BR002',
+    location: 'Harare CBD'
   },
   {
     id: 'M003',
+    terminalId: 'T003',
+    accountCif: 'CIF003',
     name: 'Fashion Boutique',
     category: 'Retail',
     officer: 'Tinashe Mariridza',
@@ -79,10 +87,15 @@ const initialMerchants: Merchant[] = [
     consolidatedUSD: 53033,
     contribution: 6.1,
     lastActivity: '2024-01-15',
-    industry: 'Retail'
+    sector: 'Retail',
+    businessUnit: 'SME Banking',
+    branchCode: 'BR003',
+    location: 'Bulawayo'
   },
   {
     id: 'M004',
+    terminalId: 'T004',
+    accountCif: 'CIF004',
     name: 'Medical Center',
     category: 'Healthcare',
     officer: 'Mufaro Maphosa',
@@ -93,7 +106,10 @@ const initialMerchants: Merchant[] = [
     consolidatedUSD: 163866,
     contribution: 9.8,
     lastActivity: '2024-01-20',
-    industry: 'Healthcare'
+    sector: 'Healthcare',
+    businessUnit: 'Corporate Banking',
+    branchCode: 'BR004',
+    location: 'Gweru'
   },
 ];
 
