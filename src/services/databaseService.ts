@@ -1,4 +1,5 @@
-import { supabase } from "@/lib/supabaseClient";
+
+import { supabase } from "@/integrations/supabase/client";
 
 interface Merchant {
   id: string;
@@ -75,7 +76,6 @@ export const databaseService = {
   },
 
   async createMerchant(merchantData: any) {
-    // Ensure required fields are present
     const requiredData = {
       terminal_id: merchantData.terminal_id || 'T000',
       account_cif: merchantData.account_cif || 'CIF000',
@@ -128,7 +128,6 @@ export const databaseService = {
   },
 
   async createTerminal(terminalData: any) {
-    // Ensure required fields are present
     const requiredData = {
       terminal_id: terminalData.terminal_id || 'T000',
       merchant_name: terminalData.merchant_name || 'Unknown Merchant',
@@ -189,10 +188,11 @@ export const databaseService = {
   },
 
   async createCommunication(communicationData: any) {
-    // Ensure required fields are present
     const requiredData = {
       merchant_name: communicationData.merchant_name || 'Unknown Merchant',
       officer: communicationData.officer || 'Unassigned',
+      type: communicationData.type || 'General',
+      subject: communicationData.subject || 'No subject',
       ...communicationData,
       created_at: new Date().toISOString()
     };
@@ -206,8 +206,21 @@ export const databaseService = {
     return data?.[0];
   },
 
+  async getCommunications() {
+    const { data, error } = await supabase
+      .from('communications')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching communications:", error);
+      throw error;
+    }
+
+    return data || [];
+  },
+
   async createAlert(alertData: any) {
-    // Ensure required fields are present
     const requiredData = {
       type: alertData.type || 'General',
       severity: alertData.severity || 'Medium',
@@ -230,7 +243,8 @@ export const databaseService = {
   async getAlerts() {
     const { data, error } = await supabase
       .from('alerts')
-      .select('*');
+      .select('*')
+      .order('timestamp', { ascending: false });
 
     if (error) {
       console.error("Error fetching alerts:", error);
@@ -265,4 +279,78 @@ export const databaseService = {
       throw error;
     }
   },
+
+  // System Settings methods
+  async getSystemSettings(category: string) {
+    const { data, error } = await supabase
+      .from('system_settings')
+      .select('*')
+      .eq('category', category);
+
+    if (error) {
+      console.error("Error fetching system settings:", error);
+      throw error;
+    }
+
+    return data || [];
+  },
+
+  async updateSystemSetting(category: string, key: string, value: any) {
+    const { data, error } = await supabase
+      .from('system_settings')
+      .upsert({
+        category,
+        setting_key: key,
+        setting_value: value,
+        updated_at: new Date().toISOString()
+      })
+      .select();
+
+    if (error) throw error;
+    return data?.[0];
+  },
+
+  // Alert Settings methods
+  async getAlertSettings() {
+    const { data, error } = await supabase
+      .from('alert_settings')
+      .select('*');
+
+    if (error) {
+      console.error("Error fetching alert settings:", error);
+      throw error;
+    }
+
+    return data || [];
+  },
+
+  async updateAlertSetting(id: string, updates: any) {
+    const { data, error } = await supabase
+      .from('alert_settings')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select();
+
+    if (error) throw error;
+    return data?.[0];
+  },
+
+  // User Sessions methods
+  async getUserSessions(limit: number = 50) {
+    const { data, error } = await supabase
+      .from('user_sessions')
+      .select('*')
+      .order('login_time', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error("Error fetching user sessions:", error);
+      throw error;
+    }
+
+    return data || [];
+  }
 };
