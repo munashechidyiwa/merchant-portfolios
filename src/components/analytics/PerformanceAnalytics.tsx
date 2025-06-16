@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ interface PerformanceAnalyticsProps {
   selectedOfficer: string;
 }
 
-const revenueData = [
+const allRevenueData = [
   { month: 'Jan', usdRevenue: 210000, zwgRevenue: 750000, usdTarget: 230000, zwgTarget: 800000 },
   { month: 'Feb', usdRevenue: 225000, zwgRevenue: 820000, usdTarget: 240000, zwgTarget: 850000 },
   { month: 'Mar', usdRevenue: 240000, zwgRevenue: 890000, usdTarget: 250000, zwgTarget: 900000 },
@@ -20,20 +20,54 @@ const revenueData = [
   { month: 'Jun', usdRevenue: 280000, zwgRevenue: 1020000, usdTarget: 280000, zwgTarget: 1000000 },
 ];
 
-const officerPerformance = [
+const allOfficerPerformance = [
   { name: 'Takudzwa Madyira', merchants: 142, usdRevenue: 245000, zwgRevenue: 876000, activityRatio: 86.8 },
   { name: 'Olivia Usai', merchants: 156, usdRevenue: 287000, zwgRevenue: 1028000, activityRatio: 89.4 },
   { name: 'Tinashe Mariridza', merchants: 138, usdRevenue: 234000, zwgRevenue: 838000, activityRatio: 66.9 },
   { name: 'Mufaro Maphosa', merchants: 147, usdRevenue: 265000, zwgRevenue: 949000, activityRatio: 57.1 },
 ];
 
-const industryData = [
+const allIndustryData = [
   { name: 'Retail', value: 35, color: '#3b82f6' },
   { name: 'Food & Beverage', value: 28, color: '#10b981' },
   { name: 'Healthcare', value: 18, color: '#f59e0b' },
   { name: 'Technology', value: 12, color: '#ef4444' },
   { name: 'Insurance', value: 7, color: '#8b5cf6' },
 ];
+
+// Industry-specific data
+const industrySpecificData = {
+  'retail': {
+    revenue: { usd: 180000, zwg: 644000 },
+    merchants: 298,
+    activeMerchants: 261,
+    activityRatio: 87.6
+  },
+  'food-beverage': {
+    revenue: { usd: 145000, zwg: 518000 },
+    merchants: 238,
+    activeMerchants: 202,
+    activityRatio: 84.9
+  },
+  'healthcare': {
+    revenue: { usd: 98000, zwg: 351000 },
+    merchants: 153,
+    activeMerchants: 128,
+    activityRatio: 83.7
+  },
+  'technology': {
+    revenue: { usd: 87000, zwg: 311000 },
+    merchants: 102,
+    activeMerchants: 78,
+    activityRatio: 76.5
+  },
+  'insurance': {
+    revenue: { usd: 45000, zwg: 161000 },
+    merchants: 59,
+    activeMerchants: 43,
+    activityRatio: 72.9
+  }
+};
 
 export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsProps) {
   const [filters, setFilters] = useState({
@@ -42,8 +76,93 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
     officer: ''
   });
 
+  const [filteredData, setFilteredData] = useState({
+    revenueData: allRevenueData,
+    officerPerformance: allOfficerPerformance,
+    industryData: allIndustryData,
+    kpis: {
+      totalUsdRevenue: 1530000,
+      totalZwgRevenue: 5470000,
+      avgActivityRatio: 75.3,
+      activeMerchants: 723
+    }
+  });
+
   const zwgToUsdRate = 3.58;
-  
+
+  useEffect(() => {
+    applyFilters();
+  }, [filters]);
+
+  const applyFilters = () => {
+    let newData = { ...filteredData };
+
+    if (filters.industry && filters.industry !== '') {
+      const industryKey = filters.industry as keyof typeof industrySpecificData;
+      const industryInfo = industrySpecificData[industryKey];
+      
+      if (industryInfo) {
+        // Filter revenue data based on industry (simulate industry-specific revenue)
+        const industryMultiplier = getIndustryMultiplier(filters.industry);
+        newData.revenueData = allRevenueData.map(data => ({
+          ...data,
+          usdRevenue: Math.round(data.usdRevenue * industryMultiplier),
+          zwgRevenue: Math.round(data.zwgRevenue * industryMultiplier)
+        }));
+
+        // Update KPIs for the selected industry
+        newData.kpis = {
+          totalUsdRevenue: industryInfo.revenue.usd,
+          totalZwgRevenue: industryInfo.revenue.zwg,
+          avgActivityRatio: industryInfo.activityRatio,
+          activeMerchants: industryInfo.activeMerchants
+        };
+
+        // Filter industry pie chart to highlight selected industry
+        newData.industryData = allIndustryData.map(item => ({
+          ...item,
+          value: item.name.toLowerCase().replace(' & ', '-').replace(' ', '-') === filters.industry 
+            ? item.value 
+            : Math.round(item.value * 0.3) // Reduce other industries
+        }));
+
+        // Filter officer performance (simulate industry-specific officers)
+        newData.officerPerformance = allOfficerPerformance.map(officer => ({
+          ...officer,
+          merchants: Math.round(officer.merchants * industryMultiplier),
+          usdRevenue: Math.round(officer.usdRevenue * industryMultiplier),
+          zwgRevenue: Math.round(officer.zwgRevenue * industryMultiplier)
+        }));
+      }
+    } else {
+      // Reset to all data
+      newData = {
+        revenueData: allRevenueData,
+        officerPerformance: allOfficerPerformance,
+        industryData: allIndustryData,
+        kpis: {
+          totalUsdRevenue: 1530000,
+          totalZwgRevenue: 5470000,
+          avgActivityRatio: 75.3,
+          activeMerchants: 723
+        }
+      };
+    }
+
+    setFilteredData(newData);
+  };
+
+  const getIndustryMultiplier = (industry: string) => {
+    const multipliers: { [key: string]: number } = {
+      'retail': 0.35,
+      'food-beverage': 0.28,
+      'healthcare': 0.18,
+      'technology': 0.12,
+      'insurance': 0.07
+    };
+    return multipliers[industry] || 1;
+  };
+
   const getActivityRatioColor = (ratio: number) => {
     return ratio >= 70 ? 'text-green-600' : 'text-red-600';
   };
@@ -58,20 +177,26 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
       industry: '',
       officer: ''
     });
-    // Add logic to refresh data
     console.log('Refreshing performance analytics data...');
   };
 
   const handleExport = () => {
-    // Export filtered data
-    const filteredData = {
+    const exportData = {
       filters,
-      revenueData,
-      officerPerformance,
-      industryData
+      ...filteredData,
+      exportedAt: new Date().toISOString()
     };
-    console.log('Exporting filtered data:', filteredData);
-    // Here you would implement actual export functionality
+    
+    // Create and download JSON file
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    const exportFileDefaultName = `performance_analytics_${filters.industry || 'all'}_${new Date().toISOString().split('T')[0]}.json`;
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    
+    console.log('Exporting filtered performance data:', exportData);
   };
 
   return (
@@ -95,6 +220,7 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
               <SelectValue placeholder="Industry" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="">All Industries</SelectItem>
               <SelectItem value="retail">Retail</SelectItem>
               <SelectItem value="food-beverage">Food & Beverage</SelectItem>
               <SelectItem value="healthcare">Healthcare</SelectItem>
@@ -116,6 +242,27 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
         </div>
       </div>
 
+      {/* Applied Filters Display */}
+      {(filters.industry || filters.dateRange) && (
+        <Card>
+          <CardContent className="py-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Active Filters:</span>
+              {filters.industry && (
+                <Badge variant="secondary">
+                  Industry: {filters.industry.replace('-', ' & ').replace(/\b\w/g, l => l.toUpperCase())}
+                </Badge>
+              )}
+              {filters.dateRange && (
+                <Badge variant="secondary">
+                  Period: {filters.dateRange.replace('-', ' ')}
+                </Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Key Performance Indicators */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
@@ -124,7 +271,7 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$1.53M</div>
+            <div className="text-2xl font-bold">${(filteredData.kpis.totalUsdRevenue / 1000000).toFixed(2)}M</div>
             <div className="flex items-center text-xs text-green-600">
               <TrendingUp className="h-3 w-3 mr-1" />
               +12.5% from last quarter
@@ -138,7 +285,7 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">ZWG 5.47M</div>
+            <div className="text-2xl font-bold">ZWG {(filteredData.kpis.totalZwgRevenue / 1000000).toFixed(2)}M</div>
             <div className="flex items-center text-xs text-green-600">
               <TrendingUp className="h-3 w-3 mr-1" />
               +8.3% from last quarter
@@ -152,7 +299,9 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">75.3%</div>
+            <div className={`text-2xl font-bold ${getActivityRatioColor(filteredData.kpis.avgActivityRatio)}`}>
+              {filteredData.kpis.avgActivityRatio}%
+            </div>
             <div className="flex items-center text-xs text-orange-600">
               <TrendingUp className="h-3 w-3 mr-1" />
               +2.1% from last month (Target: 70%)
@@ -166,7 +315,7 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">723</div>
+            <div className="text-2xl font-bold">{filteredData.kpis.activeMerchants}</div>
             <div className="flex items-center text-xs text-red-600">
               <TrendingDown className="h-3 w-3 mr-1" />
               -1.2% from last month
@@ -183,7 +332,7 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={revenueData}>
+              <LineChart data={filteredData.revenueData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
@@ -204,7 +353,7 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={revenueData}>
+              <LineChart data={filteredData.revenueData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
@@ -229,14 +378,14 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={industryData}
+                  data={filteredData.industryData}
                   cx="50%"
                   cy="50%"
                   outerRadius={80}
                   dataKey="value"
                   label={({ name, value }) => `${name}: ${value}%`}
                 >
-                  {industryData.map((entry, index) => (
+                  {filteredData.industryData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -252,7 +401,7 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={revenueData}>
+              <BarChart data={filteredData.revenueData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
@@ -280,7 +429,7 @@ export function PerformanceAnalytics({ selectedOfficer }: PerformanceAnalyticsPr
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {officerPerformance.map((officer) => {
+            {filteredData.officerPerformance.map((officer) => {
               const consolidatedRevenue = officer.usdRevenue + (officer.zwgRevenue / zwgToUsdRate);
               return (
                 <div key={officer.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
