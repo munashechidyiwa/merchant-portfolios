@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -36,7 +37,7 @@ export default function Dashboard() {
       case "alerts":
         return <AlertsPanel selectedOfficer={selectedOfficer} />;
       case "admin":
-        return <AdminPanel />;
+        return <AdminPanel selectedOfficer={selectedOfficer} />;
       default:
         return <DashboardOverview selectedOfficer={selectedOfficer} />;
     }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,8 +11,6 @@ import { FileUpload } from "./FileUpload";
 import { AddMerchantDialog } from "../merchants/AddMerchantDialog";
 import { EditMerchantDialog } from "./EditMerchantDialog";
 import { useToast } from "@/hooks/use-toast";
-import { databaseService } from "@/services/databaseService";
-import { dataProcessor } from "@/utils/dataProcessing";
 
 interface Merchant {
   id: string;
@@ -84,53 +82,12 @@ const officers = [
 
 export function MerchantManagement() {
   const { toast } = useToast();
-  const [merchants, setMerchants] = useState<Merchant[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [merchants, setMerchants] = useState<Merchant[]>(initialMerchants);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sectorFilter, setSectorFilter] = useState('all');
   const [officerFilter, setOfficerFilter] = useState('all');
   const [editingMerchant, setEditingMerchant] = useState<Merchant | null>(null);
-
-  useEffect(() => {
-    loadMerchants();
-  }, []);
-
-  const loadMerchants = async () => {
-    try {
-      setLoading(true);
-      const dbMerchants = await databaseService.getMerchants();
-      const mappedMerchants: Merchant[] = dbMerchants.map(m => ({
-        id: m.id,
-        terminalId: m.terminal_id,
-        accountCif: m.account_cif,
-        name: m.merchant_name,
-        category: m.category || 'General',
-        officer: m.support_officer,
-        status: m.status,
-        terminals: 1,
-        zwgSales: m.zwg_sales,
-        usdSales: m.usd_sales,
-        consolidatedUSD: m.consolidated_usd,
-        contribution: m.contribution_percentage,
-        lastActivity: m.last_activity.split('T')[0],
-        sector: m.sector || 'General',
-        businessUnit: m.business_unit || 'General',
-        branchCode: m.branch_code || 'BR000',
-        location: m.location || ''
-      }));
-      setMerchants(mappedMerchants);
-    } catch (error) {
-      console.error('Error loading merchants:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load merchants from database",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const resetFilters = () => {
     setSearchTerm('');
@@ -151,97 +108,82 @@ export function MerchantManagement() {
     return matchesSearch && matchesStatus && matchesSector && matchesOfficer;
   });
 
-  const handleAddMerchant = async (merchantData: any) => {
-    try {
-      const newMerchant = await databaseService.createMerchant({
-        terminal_id: merchantData.terminalId,
-        account_cif: merchantData.accountCif,
-        merchant_name: merchantData.merchantName,
-        support_officer: merchantData.supportOfficer,
-        category: merchantData.category,
-        sector: merchantData.sector,
-        business_unit: merchantData.businessUnit,
-        branch_code: merchantData.branchCode,
-        location: merchantData.location || ''
-      });
+  const handleAddMerchant = (merchantData: any) => {
+    const newMerchant: Merchant = {
+      id: `M${String(merchants.length + 1).padStart(3, '0')}`,
+      terminalId: merchantData.terminalId,
+      accountCif: merchantData.accountCif,
+      name: merchantData.merchantName,
+      category: merchantData.category,
+      officer: merchantData.supportOfficer,
+      status: 'Active',
+      terminals: 1,
+      zwgSales: 0,
+      usdSales: 0,
+      consolidatedUSD: 0,
+      contribution: 0,
+      lastActivity: new Date().toISOString().split('T')[0],
+      sector: merchantData.sector,
+      businessUnit: merchantData.businessUnit,
+      branchCode: merchantData.branchCode,
+      location: merchantData.location || ''
+    };
 
-      await loadMerchants(); // Reload from database
-      
-      toast({
-        title: "Merchant Added",
-        description: `${merchantData.merchantName} has been added successfully.`,
-      });
-    } catch (error) {
-      console.error('Error adding merchant:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add merchant",
-        variant: "destructive",
-      });
-    }
+    setMerchants(prev => [...prev, newMerchant]);
+    console.log('Admin added new merchant:', newMerchant);
   };
 
-  const handleEditMerchant = async (merchantData: any) => {
-    if (!editingMerchant) return;
-    
-    try {
-      await databaseService.updateMerchant(editingMerchant.id, {
-        merchant_name: merchantData.merchantName,
-        support_officer: merchantData.supportOfficer,
-        category: merchantData.category,
-        sector: merchantData.sector,
-        business_unit: merchantData.businessUnit,
-        branch_code: merchantData.branchCode,
-        location: merchantData.location
-      });
-
-      await loadMerchants(); // Reload from database
-      setEditingMerchant(null);
-      
-      toast({
-        title: "Merchant Updated",
-        description: `${merchantData.merchantName} has been updated successfully.`,
-      });
-    } catch (error) {
-      console.error('Error updating merchant:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update merchant",
-        variant: "destructive",
-      });
-    }
+  const handleEditMerchant = (merchantData: any) => {
+    setMerchants(prev => prev.map(merchant => 
+      merchant.id === editingMerchant?.id 
+        ? { ...merchant, ...merchantData }
+        : merchant
+    ));
+    setEditingMerchant(null);
+    console.log('Admin updated merchant:', merchantData);
   };
 
-  const handleDeleteMerchant = async (merchantId: string) => {
-    if (!window.confirm('Are you sure you want to delete this merchant?')) return;
-    
-    try {
-      await databaseService.deleteMerchant(merchantId);
-      await loadMerchants(); // Reload from database
-      
-      toast({
-        title: "Merchant Deleted",
-        description: "Merchant has been deleted successfully.",
-      });
-    } catch (error) {
-      console.error('Error deleting merchant:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete merchant",
-        variant: "destructive",
-      });
+  const handleDeleteMerchant = (merchantId: string) => {
+    if (window.confirm('Are you sure you want to delete this merchant?')) {
+      setMerchants(prev => prev.filter(merchant => merchant.id !== merchantId));
+      console.log('Admin deleted merchant:', merchantId);
     }
   };
 
   const handleMerchantUpload = async (file: File, currency: 'USD' | 'ZWG') => {
     try {
+      const { dataProcessor } = await import('@/utils/dataProcessing');
       const merchantData = await dataProcessor.processMerchantReport(file, currency);
-      await loadMerchants(); // Reload from database to show newly imported data
+      
+      // Update local merchants state with new data
+      const newMerchants = merchantData.map((data, index) => ({
+        id: `M${String(merchants.length + index + 1).padStart(3, '0')}`,
+        terminalId: data.terminalId,
+        accountCif: data.accountCif,
+        name: data.merchantName,
+        category: 'Imported',
+        officer: data.supportOfficer,
+        status: 'Active',
+        terminals: 1,
+        zwgSales: currency === 'ZWG' ? data.monthToDateTotal : 0,
+        usdSales: currency === 'USD' ? data.monthToDateTotal : 0,
+        consolidatedUSD: currency === 'USD' ? data.monthToDateTotal : data.monthToDateTotal / 3.58,
+        contribution: 0,
+        lastActivity: new Date().toISOString().split('T')[0],
+        sector: 'Imported',
+        businessUnit: data.businessUnit,
+        branchCode: data.branchCode,
+        location: ''
+      }));
+
+      setMerchants(prev => [...prev, ...newMerchants]);
       
       toast({
         title: "Data Processed Successfully",
-        description: `${currency} merchant data uploaded and processed. ${merchantData.length} merchants added.`,
+        description: `${currency} merchant data uploaded and processed. ${newMerchants.length} merchants added.`,
       });
+      
+      console.log(`Admin uploaded and processed ${currency} merchant data`);
     } catch (error) {
       console.error('Error uploading merchant data:', error);
       toast({
@@ -254,13 +196,38 @@ export function MerchantManagement() {
 
   const handleMerchantDataUpload = async (file: File) => {
     try {
+      const { dataProcessor } = await import('@/utils/dataProcessing');
       const merchantData = await dataProcessor.processMerchantReport(file, 'USD');
-      await loadMerchants(); // Reload from database
+      
+      // Update local merchants state with new data
+      const newMerchants = merchantData.map((data, index) => ({
+        id: `M${String(merchants.length + index + 1).padStart(3, '0')}`,
+        terminalId: data.terminalId,
+        accountCif: data.accountCif,
+        name: data.merchantName,
+        category: 'Imported',
+        officer: data.supportOfficer,
+        status: 'Active',
+        terminals: 1,
+        zwgSales: 0,
+        usdSales: data.monthToDateTotal,
+        consolidatedUSD: data.monthToDateTotal,
+        contribution: 0,
+        lastActivity: new Date().toISOString().split('T')[0],
+        sector: 'Imported',
+        businessUnit: data.businessUnit,
+        branchCode: data.branchCode,
+        location: ''
+      }));
+
+      setMerchants(prev => [...prev, ...newMerchants]);
       
       toast({
         title: "Data Processed Successfully",
-        description: `Merchant data uploaded and processed. ${merchantData.length} merchants added.`,
+        description: `Merchant data uploaded and processed. ${newMerchants.length} merchants added.`,
       });
+      
+      console.log('Admin uploaded merchant data file');
     } catch (error) {
       console.error('Error uploading merchant data:', error);
       toast({
@@ -306,17 +273,6 @@ export function MerchantManagement() {
   };
 
   const uniqueSectors = [...new Set(merchants.map(m => m.sector))];
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading merchants from database...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">

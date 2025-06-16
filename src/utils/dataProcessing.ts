@@ -1,127 +1,169 @@
 
-import * as XLSX from 'xlsx';
-import { databaseService } from '@/services/databaseService';
-
-export interface ProcessedData {
-  merchantData: any[];
-  terminalData: any[];
+export interface MerchantReportData {
+  terminalId: string;
+  accountCif: string;
+  merchantName: string;
+  supportOfficer: string;
+  businessUnit: string;
+  branchCode: string;
+  monthToDateTotal: number;
+  currency: 'USD' | 'ZWG';
+  dailyTotals: Record<string, number>; // date -> amount
+  lastTransactionDate: string;
 }
 
-export const dataProcessor = {
-  async processMerchantReport(file: File, currency: 'USD' | 'ZWG'): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const data = new Uint8Array(e.target?.result as ArrayBuffer);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+export interface TerminalData {
+  terminalId: string;
+  serialNumber: string;
+  merchantName: string;
+  merchantId: string;
+  model: string;
+  location: string;
+  officer: string;
+  status: 'Active' | 'Inactive';
+  lastTransaction: string;
+}
 
-          console.log('Processing merchant report:', { currency, rowCount: jsonData.length });
+export interface ProcessedData {
+  totalUsdRevenue: number;
+  totalZwgRevenue: number;
+  consolidatedUsdRevenue: number;
+  activeTerminals: number;
+  totalTerminals: number;
+  activityRatio: number;
+  merchantData: MerchantReportData[];
+  terminalData: TerminalData[];
+}
 
-          const processedMerchants = jsonData.map((row: any, index: number) => ({
-            id: `M${String(index + 1).padStart(3, '0')}`,
-            terminal_id: row['Terminal ID'] || row['TerminalID'] || `T${String(index + 1).padStart(3, '0')}`,
-            account_cif: row['Account CIF'] || row['CIF'] || `CIF${String(index + 1).padStart(3, '0')}`,
-            merchant_name: row['Merchant Name'] || row['MerchantName'] || row['Business Name'] || 'Unknown Merchant',
-            support_officer: row['Support Officer'] || row['Officer'] || 'Unassigned',
-            category: row['Category'] || row['Business Category'] || 'General',
-            sector: row['Sector'] || row['Business Sector'] || 'General',
-            business_unit: row['Business Unit'] || row['Unit'] || 'General',
-            branch_code: row['Branch Code'] || row['Branch'] || 'BR000',
-            location: row['Location'] || row['Address'] || '',
-            status: row['Status'] || 'Active',
-            zwg_sales: currency === 'ZWG' ? (parseFloat(row['Sales Amount']) || 0) : 0,
-            usd_sales: currency === 'USD' ? (parseFloat(row['Sales Amount']) || 0) : 0,
-            consolidated_usd: parseFloat(row['Consolidated USD']) || parseFloat(row['Sales Amount']) || 0,
-            contribution_percentage: parseFloat(row['Contribution %']) || 0,
-            last_activity: row['Last Activity'] || new Date().toISOString()
-          }));
+const ZWG_TO_USD_RATE = 3.58;
 
-          // Save to database
-          for (const merchant of processedMerchants) {
-            try {
-              await databaseService.createMerchant(merchant);
-            } catch (error) {
-              console.error('Error saving merchant:', merchant.merchant_name, error);
-            }
+export class DataProcessor {
+  private merchantReports: MerchantReportData[] = [];
+  private terminalData: TerminalData[] = [];
+
+  processMerchantReport(file: File, currency: 'USD' | 'ZWG'): Promise<MerchantReportData[]> {
+    return new Promise((resolve) => {
+      // Simulate processing Excel file
+      // In a real implementation, you would use a library like xlsx to parse Excel files
+      setTimeout(() => {
+        const mockData: MerchantReportData[] = [
+          {
+            terminalId: 'T001',
+            accountCif: 'CIF001',
+            merchantName: 'Sunset Cafe',
+            supportOfficer: 'Takudzwa Madyira',
+            businessUnit: 'Retail',
+            branchCode: 'BR001',
+            monthToDateTotal: currency === 'USD' ? 15000 : 53700,
+            currency,
+            dailyTotals: {},
+            lastTransactionDate: new Date().toISOString()
+          },
+          {
+            terminalId: 'T002',
+            accountCif: 'CIF002',
+            merchantName: 'Tech Solutions Inc',
+            supportOfficer: 'Olivia Usai',
+            businessUnit: 'Technology',
+            branchCode: 'BR002',
+            monthToDateTotal: currency === 'USD' ? 23000 : 82340,
+            currency,
+            dailyTotals: {},
+            lastTransactionDate: new Date().toISOString()
           }
-
-          resolve(processedMerchants);
-        } catch (error) {
-          console.error('Error processing merchant report:', error);
-          reject(error);
-        }
-      };
-      reader.readAsArrayBuffer(file);
+        ];
+        
+        this.merchantReports = [...this.merchantReports, ...mockData];
+        resolve(mockData);
+      }, 1000);
     });
-  },
-
-  async processTerminalReport(file: File): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const data = new Uint8Array(e.target?.result as ArrayBuffer);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-          console.log('Processing terminal report:', { rowCount: jsonData.length });
-
-          const processedTerminals = jsonData.map((row: any, index: number) => ({
-            id: `T${String(index + 1).padStart(3, '0')}`,
-            terminal_id: row['Terminal ID'] || row['TerminalID'] || `T${String(index + 1).padStart(3, '0')}`,
-            serial_number: row['Serial Number'] || row['SerialNumber'] || '',
-            merchant_name: row['Merchant Name'] || row['MerchantName'] || 'Unknown Merchant',
-            merchant_id: row['Merchant ID'] || row['MerchantID'] || '',
-            location: row['Location'] || row['Address'] || '',
-            status: row['Status'] || 'Active',
-            officer: row['Officer'] || row['Support Officer'] || 'Unassigned',
-            last_transaction: row['Last Transaction'] || new Date().toISOString(),
-            installation_date: row['Installation Date'] || new Date().toISOString(),
-            model: row['Model'] || row['Terminal Model'] || 'Unknown'
-          }));
-
-          // Save to database
-          for (const terminal of processedTerminals) {
-            try {
-              await databaseService.createTerminal(terminal);
-            } catch (error) {
-              console.error('Error saving terminal:', terminal.terminal_id, error);
-            }
-          }
-
-          resolve(processedTerminals);
-        } catch (error) {
-          console.error('Error processing terminal report:', error);
-          reject(error);
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    });
-  },
-
-  async getProcessedData(): Promise<ProcessedData> {
-    try {
-      const [merchantData, terminalData] = await Promise.all([
-        databaseService.getMerchants(),
-        databaseService.getTerminals()
-      ]);
-
-      return {
-        merchantData,
-        terminalData
-      };
-    } catch (error) {
-      console.error('Error getting processed data:', error);
-      return {
-        merchantData: [],
-        terminalData: []
-      };
-    }
   }
-};
+
+  processTerminalData(file: File): Promise<TerminalData[]> {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const mockTerminals: TerminalData[] = [
+          {
+            terminalId: 'T001',
+            serialNumber: 'SN123456789',
+            merchantName: 'Sunset Cafe',
+            merchantId: 'M001',
+            model: 'Ingenico iWL250',
+            location: 'Corner Samora Machel Ave & Julius Nyerere Way, Harare, Zimbabwe',
+            officer: 'Takudzwa Madyira',
+            status: 'Active',
+            lastTransaction: new Date().toISOString()
+          },
+          {
+            terminalId: 'T002',
+            serialNumber: 'SN987654321',
+            merchantName: 'Tech Solutions Inc',
+            merchantId: 'M002',
+            model: 'Verifone V240m',
+            location: 'Borrowdale Road, Borrowdale, Harare, Zimbabwe',
+            officer: 'Olivia Usai',
+            status: 'Active',
+            lastTransaction: new Date().toISOString()
+          }
+        ];
+
+        this.terminalData = mockTerminals;
+        resolve(mockTerminals);
+      }, 1000);
+    });
+  }
+
+  calculateActivityRatio(merchantReports: MerchantReportData[]): number {
+    const totalTerminals = merchantReports.length;
+    const activeTerminals = merchantReports.filter(report => {
+      const lastTransaction = new Date(report.lastTransactionDate);
+      const today = new Date();
+      const daysDiff = Math.floor((today.getTime() - lastTransaction.getTime()) / (1000 * 60 * 60 * 24));
+      return daysDiff <= 7; // Active if transacted within last 7 days
+    }).length;
+
+    return totalTerminals > 0 ? (activeTerminals / totalTerminals) * 100 : 0;
+  }
+
+  updateTerminalStatus(): void {
+    // Update terminal status based on recent transactions
+    this.terminalData.forEach(terminal => {
+      const recentReport = this.merchantReports.find(report => 
+        report.terminalId === terminal.terminalId
+      );
+      
+      if (recentReport) {
+        const lastTransaction = new Date(recentReport.lastTransactionDate);
+        const today = new Date();
+        const daysDiff = Math.floor((today.getTime() - lastTransaction.getTime()) / (1000 * 60 * 60 * 24));
+        terminal.status = daysDiff <= 7 ? 'Active' : 'Inactive';
+        terminal.lastTransaction = recentReport.lastTransactionDate;
+      }
+    });
+  }
+
+  getProcessedData(): ProcessedData {
+    const usdReports = this.merchantReports.filter(r => r.currency === 'USD');
+    const zwgReports = this.merchantReports.filter(r => r.currency === 'ZWG');
+    
+    const totalUsdRevenue = usdReports.reduce((sum, report) => sum + report.monthToDateTotal, 0);
+    const totalZwgRevenue = zwgReports.reduce((sum, report) => sum + report.monthToDateTotal, 0);
+    const consolidatedUsdRevenue = totalUsdRevenue + (totalZwgRevenue / ZWG_TO_USD_RATE);
+    
+    const activeTerminals = this.terminalData.filter(t => t.status === 'Active').length;
+    const activityRatio = this.calculateActivityRatio(this.merchantReports);
+
+    return {
+      totalUsdRevenue,
+      totalZwgRevenue,
+      consolidatedUsdRevenue,
+      activeTerminals,
+      totalTerminals: this.terminalData.length,
+      activityRatio,
+      merchantData: this.merchantReports,
+      terminalData: this.terminalData
+    };
+  }
+}
+
+export const dataProcessor = new DataProcessor();

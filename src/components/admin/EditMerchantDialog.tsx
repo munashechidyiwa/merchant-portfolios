@@ -143,7 +143,7 @@ export function EditMerchantDialog({ merchant, onEditMerchant, onClose }: EditMe
             <div className="space-y-2">
               <Label htmlFor="supportOfficer">Support Officer *</Label>
               <Select 
-                defaultValue={merchant.officer || "unassigned"}
+                defaultValue={merchant.officer}
                 onValueChange={(value) => setValue("supportOfficer", value)}
               >
                 <SelectTrigger>
@@ -151,7 +151,7 @@ export function EditMerchantDialog({ merchant, onEditMerchant, onClose }: EditMe
                 </SelectTrigger>
                 <SelectContent>
                   {officers.map((officer) => (
-                    <SelectItem key={officer} value={officer || "unassigned"}>
+                    <SelectItem key={officer} value={officer}>
                       {officer}
                     </SelectItem>
                   ))}
@@ -162,7 +162,7 @@ export function EditMerchantDialog({ merchant, onEditMerchant, onClose }: EditMe
             <div className="space-y-2">
               <Label htmlFor="businessUnit">Business Unit *</Label>
               <Select 
-                defaultValue={merchant.businessUnit || "general"}
+                defaultValue={merchant.businessUnit}
                 onValueChange={(value) => setValue("businessUnit", value)}
               >
                 <SelectTrigger>
@@ -170,7 +170,7 @@ export function EditMerchantDialog({ merchant, onEditMerchant, onClose }: EditMe
                 </SelectTrigger>
                 <SelectContent>
                   {businessUnits.map((unit) => (
-                    <SelectItem key={unit} value={unit || "general"}>
+                    <SelectItem key={unit} value={unit}>
                       {unit}
                     </SelectItem>
                   ))}
@@ -191,7 +191,7 @@ export function EditMerchantDialog({ merchant, onEditMerchant, onClose }: EditMe
             <div className="space-y-2">
               <Label htmlFor="sector">Sector *</Label>
               <Select 
-                defaultValue={merchant.sector || "general"}
+                defaultValue={merchant.sector}
                 onValueChange={(value) => setValue("sector", value)}
               >
                 <SelectTrigger>
@@ -199,7 +199,7 @@ export function EditMerchantDialog({ merchant, onEditMerchant, onClose }: EditMe
                 </SelectTrigger>
                 <SelectContent>
                   {sectors.map((sector) => (
-                    <SelectItem key={sector} value={sector || "general"}>
+                    <SelectItem key={sector} value={sector}>
                       {sector}
                     </SelectItem>
                   ))}
@@ -210,7 +210,7 @@ export function EditMerchantDialog({ merchant, onEditMerchant, onClose }: EditMe
             <div className="space-y-2">
               <Label htmlFor="category">Category *</Label>
               <Select 
-                defaultValue={merchant.category || "general"}
+                defaultValue={merchant.category}
                 onValueChange={(value) => setValue("category", value)}
               >
                 <SelectTrigger>
@@ -218,7 +218,7 @@ export function EditMerchantDialog({ merchant, onEditMerchant, onClose }: EditMe
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
-                    <SelectItem key={category} value={category || "general"}>
+                    <SelectItem key={category} value={category}>
                       {category}
                     </SelectItem>
                   ))}
@@ -229,7 +229,7 @@ export function EditMerchantDialog({ merchant, onEditMerchant, onClose }: EditMe
             <div className="space-y-2">
               <Label htmlFor="status">Status *</Label>
               <Select 
-                defaultValue={merchant.status || "active"}
+                defaultValue={merchant.status}
                 onValueChange={(value) => setValue("status", value)}
               >
                 <SelectTrigger>
@@ -237,7 +237,7 @@ export function EditMerchantDialog({ merchant, onEditMerchant, onClose }: EditMe
                 </SelectTrigger>
                 <SelectContent>
                   {statuses.map((status) => (
-                    <SelectItem key={status} value={status.toLowerCase() || "active"}>
+                    <SelectItem key={status} value={status}>
                       {status}
                     </SelectItem>
                   ))}
