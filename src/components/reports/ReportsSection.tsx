@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -119,6 +118,17 @@ const categoryData = {
   }
 };
 
+interface ReportContent {
+  title: string;
+  generated: string;
+  officer: string;
+  dateRange: string;
+  category: string;
+  data: any;
+  summary?: string;
+  recommendations?: string[];
+}
+
 export function ReportsSection({ selectedOfficer }: ReportsSectionProps) {
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('');
@@ -187,13 +197,13 @@ export function ReportsSection({ selectedOfficer }: ReportsSectionProps) {
     }
   };
 
-  const generateReportContent = (template: any, data: any, dateRange: DateRange | undefined, officer: string) => {
+  const generateReportContent = (template: any, data: any, dateRange: DateRange | undefined, officer: string): ReportContent => {
     const reportDate = new Date().toLocaleDateString();
     const dateRangeStr = dateRange?.from && dateRange?.to 
       ? `${format(dateRange.from, "PPP")} - ${format(dateRange.to, "PPP")}`
       : 'All Time';
 
-    let content = {
+    let content: ReportContent = {
       title: template.name,
       generated: reportDate,
       officer: getOfficerName(officer),
@@ -252,7 +262,7 @@ export function ReportsSection({ selectedOfficer }: ReportsSectionProps) {
     return content;
   };
 
-  const downloadReport = (content: any, fileName: string, format: string) => {
+  const downloadReport = (content: ReportContent, fileName: string, format: string) => {
     let dataStr, dataUri, fileExtension;
 
     switch (format.toLowerCase()) {

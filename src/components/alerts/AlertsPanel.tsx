@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -98,11 +97,11 @@ export function AlertsPanel({ selectedOfficer, isAdmin = false }: AlertsPanelPro
       
       const systemAlerts = alertService.generateSystemAlerts();
       
-      // Add more realistic generated alerts
+      // Add more realistic generated alerts with correct types
       const additionalAlerts: SystemAlert[] = [
         {
           id: `A${Date.now()}-1`,
-          type: 'Low Activity',
+          type: 'Terminal Inactive',
           severity: 'Medium',
           message: 'Terminal T007 at Corner Store has processed only 2 transactions in the last 7 days',
           merchant: 'Corner Store',
@@ -115,7 +114,7 @@ export function AlertsPanel({ selectedOfficer, isAdmin = false }: AlertsPanelPro
         },
         {
           id: `A${Date.now()}-2`,
-          type: 'Revenue Drop',
+          type: 'Revenue Threshold',
           severity: 'High',
           message: 'Tech Hub merchant revenue dropped by 45% compared to last month',
           merchant: 'Tech Hub',
@@ -128,7 +127,7 @@ export function AlertsPanel({ selectedOfficer, isAdmin = false }: AlertsPanelPro
         },
         {
           id: `A${Date.now()}-3`,
-          type: 'Terminal Error',
+          type: 'Performance Issue',
           severity: 'High',
           message: 'Terminal T012 at Pharmacy Plus reporting connectivity issues for 3 consecutive days',
           merchant: 'Pharmacy Plus',
@@ -141,7 +140,7 @@ export function AlertsPanel({ selectedOfficer, isAdmin = false }: AlertsPanelPro
         },
         {
           id: `A${Date.now()}-4`,
-          type: 'Target Achievement',
+          type: 'Training Required',
           severity: 'Low',
           message: 'Monthly revenue target achievement at 95% - on track for success',
           merchant: 'All Merchants',
