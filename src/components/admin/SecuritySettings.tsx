@@ -57,12 +57,21 @@ export function SecuritySettings() {
       const securitySettings = await databaseService.getSystemSettings('security');
       
       securitySettings.forEach(setting => {
-        if (setting.setting_key === 'session_timeout') {
-          setSettings(prev => ({ ...prev, sessionTimeout: setting.setting_value }));
-        } else if (setting.setting_key === 'max_login_attempts') {
-          setSettings(prev => ({ ...prev, maxLoginAttempts: setting.setting_value }));
-        } else if (setting.setting_key === 'password_policy') {
-          setSettings(prev => ({ ...prev, passwordPolicy: setting.setting_value }));
+        if (setting.setting_key === 'session_timeout' && setting.setting_value) {
+          const value = setting.setting_value as { value: number; unit: string };
+          setSettings(prev => ({ ...prev, sessionTimeout: value }));
+        } else if (setting.setting_key === 'max_login_attempts' && setting.setting_value) {
+          const value = setting.setting_value as { value: number };
+          setSettings(prev => ({ ...prev, maxLoginAttempts: value }));
+        } else if (setting.setting_key === 'password_policy' && setting.setting_value) {
+          const value = setting.setting_value as {
+            min_length: number;
+            require_uppercase: boolean;
+            require_lowercase: boolean;
+            require_numbers: boolean;
+            require_special: boolean;
+          };
+          setSettings(prev => ({ ...prev, passwordPolicy: value }));
         }
       });
     } catch (error) {

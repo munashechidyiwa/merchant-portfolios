@@ -64,12 +64,15 @@ export function CommunicationSettings() {
       const commSettings = await databaseService.getSystemSettings('communication');
       
       commSettings.forEach(setting => {
-        if (setting.setting_key === 'email_notifications') {
-          setSettings(prev => ({ ...prev, emailNotifications: setting.setting_value }));
-        } else if (setting.setting_key === 'auto_communication') {
-          setSettings(prev => ({ ...prev, autoCommunication: setting.setting_value }));
-        } else if (setting.setting_key === 'cc_email') {
-          setSettings(prev => ({ ...prev, ccEmail: setting.setting_value }));
+        if (setting.setting_key === 'email_notifications' && setting.setting_value) {
+          const value = setting.setting_value as { enabled: boolean; frequency: string };
+          setSettings(prev => ({ ...prev, emailNotifications: value }));
+        } else if (setting.setting_key === 'auto_communication' && setting.setting_value) {
+          const value = setting.setting_value as { enabled: boolean; inactive_threshold: number };
+          setSettings(prev => ({ ...prev, autoCommunication: value }));
+        } else if (setting.setting_key === 'cc_email' && setting.setting_value) {
+          const value = setting.setting_value as { value: string };
+          setSettings(prev => ({ ...prev, ccEmail: value }));
         }
       });
     } catch (error) {

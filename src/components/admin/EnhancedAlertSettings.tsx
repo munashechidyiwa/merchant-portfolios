@@ -101,10 +101,12 @@ export function EnhancedAlertSettings() {
 
       const systemSettings = await databaseService.getSystemSettings('alert');
       systemSettings.forEach(setting => {
-        if (setting.setting_key === 'auto_generation') {
-          setGlobalSettings(prev => ({ ...prev, auto_generation: setting.setting_value }));
-        } else if (setting.setting_key === 'escalation_rules') {
-          setGlobalSettings(prev => ({ ...prev, escalation_rules: setting.setting_value }));
+        if (setting.setting_key === 'auto_generation' && setting.setting_value) {
+          const value = setting.setting_value as { enabled: boolean; frequency: string };
+          setGlobalSettings(prev => ({ ...prev, auto_generation: value }));
+        } else if (setting.setting_key === 'escalation_rules' && setting.setting_value) {
+          const value = setting.setting_value as { high_priority: string; medium_priority: string; low_priority: string };
+          setGlobalSettings(prev => ({ ...prev, escalation_rules: value }));
         }
       });
     } catch (error) {
