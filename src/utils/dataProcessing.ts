@@ -60,9 +60,7 @@ export class DataProcessor {
               branchCode: 'BR001',
               monthToDateTotal: currency === 'USD' ? 15000 : 53700,
               currency,
-              dail
-
-yTotals: {},
+              dailyTotals: {},
               lastTransactionDate: new Date().toISOString(),
               sector: 'Retail',
               location: 'Harare, Zimbabwe'
@@ -254,6 +252,82 @@ yTotals: {},
         terminalData: this.terminalData
       };
     }
+  }
+
+  async processTerminalData(file: File): Promise<TerminalData[]> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        setTimeout(async () => {
+          const mockTerminals: TerminalData[] = [
+            {
+              terminalId: `T${Date.now()}001`,
+              serialNumber: `SN${Date.now()}`,
+              merchantName: `Imported Terminal Merchant ${Date.now()}`,
+              merchantId: `M${Date.now()}`,
+              model: 'Ingenico iWL250',
+              location: 'Harare, Zimbabwe',
+              officer: 'Takudzwa Madyira',
+              status: 'Active',
+              lastTransaction: new Date().toISOString()
+            }
+          ];
+
+          // Save to database
+          try {
+            const terminalsToInsert = mockTerminals.map(terminal => ({
+              terminal_id: terminal.terminalId,
+              serial_number: terminal.serialNumber,
+              merchant_name: terminal.merchantName,
+              merchant_id: terminal.merchantId,
+              model: terminal.model,
+              location: terminal.location,
+              officer: terminal.officer,
+              status: terminal.status,
+              last_transaction: terminal.lastTransaction
+            }));
+
+            await databaseService.bulkInsertTerminals(terminalsToInsert);
+            console.log(`Successfully saved ${mockTerminals.length} terminals to database`);
+          } catch (error) {
+            console.error('Error saving terminals to database:', error);
+          }
+
+          this.terminalData = mockTerminals;
+          resolve(mockTerminals);
+        }, 1000);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  calculateActivityRatio(merchantReports: MerchantReportData[]): number {
+    const totalTerminals = merchantReports.length;
+    const activeTerminals = merchantReports.filter(report => {
+      const lastTransaction = new Date(report.lastTransactionDate);
+      const today = new Date();
+      const daysDiff = Math.floor((today.getTime() - lastTransaction.getTime()) / (1000 * 60 * 60 * 24));
+      return daysDiff <= 7;
+    }).length;
+
+    return totalTerminals > 0 ? (activeTerminals / totalTerminals) * 100 : 0;
+  }
+
+  async updateTerminalStatus(): Promise<void> {
+    // Update terminal status based on recent transactions
+    this.terminalData.forEach(terminal => {
+      const recentReport = this.merchantReports.find(report => 
+        report.terminalId === terminal.terminalId
+      );
+      
+      if (recentReport) {
+        const lastTransaction = new Date(recentReport.lastTransactionDate);
+        const today = new Date();
+        const daysDiff = Math.floor((today.getTime() - lastTransaction.getTime()) / (1000 * 60 * 60 * 24));
+        terminal.status = daysDiff <= 7 ? 'Active' : 'Inactive';
+        terminal.lastTransaction = recentReport.lastTransactionDate;
+      }
+    });
   }
 }
 

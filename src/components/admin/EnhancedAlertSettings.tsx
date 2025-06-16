@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -402,8 +403,8 @@ export function EnhancedAlertSettings() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="greater_than">></SelectItem>
-                    <SelectItem value="less_than"><</SelectItem>
+                    <SelectItem value="greater_than">&gt;</SelectItem>
+                    <SelectItem value="less_than">&lt;</SelectItem>
                     <SelectItem value="equals">=</SelectItem>
                   </SelectContent>
                 </Select>
