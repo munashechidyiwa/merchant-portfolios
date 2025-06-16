@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -111,7 +110,7 @@ export function AddMerchantDialog({ onAddMerchant }: AddMerchantDialogProps) {
                 </SelectTrigger>
                 <SelectContent>
                   {officers.map((officer) => (
-                    <SelectItem key={officer} value={officer}>
+                    <SelectItem key={officer} value={officer || "unassigned"}>
                       {officer}
                     </SelectItem>
                   ))}
@@ -127,7 +126,7 @@ export function AddMerchantDialog({ onAddMerchant }: AddMerchantDialogProps) {
                 </SelectTrigger>
                 <SelectContent>
                   {businessUnits.map((unit) => (
-                    <SelectItem key={unit} value={unit}>
+                    <SelectItem key={unit} value={unit || "general"}>
                       {unit}
                     </SelectItem>
                   ))}
@@ -153,7 +152,7 @@ export function AddMerchantDialog({ onAddMerchant }: AddMerchantDialogProps) {
                 </SelectTrigger>
                 <SelectContent>
                   {sectors.map((sector) => (
-                    <SelectItem key={sector} value={sector}>
+                    <SelectItem key={sector} value={sector || "general"}>
                       {sector}
                     </SelectItem>
                   ))}
@@ -168,11 +167,11 @@ export function AddMerchantDialog({ onAddMerchant }: AddMerchantDialogProps) {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Restaurant">Restaurant</SelectItem>
-                  <SelectItem value="Retail">Retail</SelectItem>
-                  <SelectItem value="Technology">Technology</SelectItem>
-                  <SelectItem value="Healthcare">Healthcare</SelectItem>
-                  <SelectItem value="Insurance">Insurance</SelectItem>
+                  <SelectItem value="restaurant">Restaurant</SelectItem>
+                  <SelectItem value="retail">Retail</SelectItem>
+                  <SelectItem value="technology">Technology</SelectItem>
+                  <SelectItem value="healthcare">Healthcare</SelectItem>
+                  <SelectItem value="insurance">Insurance</SelectItem>
                 </SelectContent>
               </Select>
             </div>
