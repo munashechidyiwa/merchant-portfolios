@@ -9,7 +9,330 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      alert_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          email_notification: boolean | null
+          enabled: boolean | null
+          id: string
+          name: string
+          priority: string | null
+          threshold_value: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          email_notification?: boolean | null
+          enabled?: boolean | null
+          id?: string
+          name: string
+          priority?: string | null
+          threshold_value?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          email_notification?: boolean | null
+          enabled?: boolean | null
+          id?: string
+          name?: string
+          priority?: string | null
+          threshold_value?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      alerts: {
+        Row: {
+          action_required: string | null
+          auto_generated: boolean | null
+          created_at: string | null
+          due_date: string | null
+          id: string
+          merchant: string
+          message: string
+          officer: string
+          severity: string
+          status: string | null
+          terminal_id: string | null
+          timestamp: string | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          action_required?: string | null
+          auto_generated?: boolean | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          merchant: string
+          message: string
+          officer: string
+          severity: string
+          status?: string | null
+          terminal_id?: string | null
+          timestamp?: string | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          action_required?: string | null
+          auto_generated?: boolean | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          merchant?: string
+          message?: string
+          officer?: string
+          severity?: string
+          status?: string | null
+          terminal_id?: string | null
+          timestamp?: string | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      communications: {
+        Row: {
+          auto_generated: boolean | null
+          created_at: string | null
+          date: string | null
+          follow_up_date: string | null
+          id: string
+          inactive_days: number | null
+          merchant_id: string | null
+          merchant_name: string
+          notes: string | null
+          officer: string
+          officer_email: string | null
+          priority: string | null
+          status: string | null
+          subject: string
+          terminal_id: string | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          auto_generated?: boolean | null
+          created_at?: string | null
+          date?: string | null
+          follow_up_date?: string | null
+          id?: string
+          inactive_days?: number | null
+          merchant_id?: string | null
+          merchant_name: string
+          notes?: string | null
+          officer: string
+          officer_email?: string | null
+          priority?: string | null
+          status?: string | null
+          subject: string
+          terminal_id?: string | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          auto_generated?: boolean | null
+          created_at?: string | null
+          date?: string | null
+          follow_up_date?: string | null
+          id?: string
+          inactive_days?: number | null
+          merchant_id?: string | null
+          merchant_name?: string
+          notes?: string | null
+          officer?: string
+          officer_email?: string | null
+          priority?: string | null
+          status?: string | null
+          subject?: string
+          terminal_id?: string | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      merchants: {
+        Row: {
+          account_cif: string
+          branch_code: string | null
+          business_unit: string | null
+          category: string | null
+          consolidated_usd: number | null
+          contribution_percentage: number | null
+          created_at: string | null
+          id: string
+          last_activity: string | null
+          location: string | null
+          merchant_name: string
+          month_to_date_total: number | null
+          sector: string | null
+          status: string | null
+          support_officer: string
+          terminal_id: string
+          updated_at: string | null
+          usd_sales: number | null
+          zwg_sales: number | null
+        }
+        Insert: {
+          account_cif: string
+          branch_code?: string | null
+          business_unit?: string | null
+          category?: string | null
+          consolidated_usd?: number | null
+          contribution_percentage?: number | null
+          created_at?: string | null
+          id?: string
+          last_activity?: string | null
+          location?: string | null
+          merchant_name: string
+          month_to_date_total?: number | null
+          sector?: string | null
+          status?: string | null
+          support_officer: string
+          terminal_id: string
+          updated_at?: string | null
+          usd_sales?: number | null
+          zwg_sales?: number | null
+        }
+        Update: {
+          account_cif?: string
+          branch_code?: string | null
+          business_unit?: string | null
+          category?: string | null
+          consolidated_usd?: number | null
+          contribution_percentage?: number | null
+          created_at?: string | null
+          id?: string
+          last_activity?: string | null
+          location?: string | null
+          merchant_name?: string
+          month_to_date_total?: number | null
+          sector?: string | null
+          status?: string | null
+          support_officer?: string
+          terminal_id?: string
+          updated_at?: string | null
+          usd_sales?: number | null
+          zwg_sales?: number | null
+        }
+        Relationships: []
+      }
+      system_settings: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      terminals: {
+        Row: {
+          created_at: string | null
+          id: string
+          installation_date: string | null
+          last_transaction: string | null
+          location: string | null
+          merchant_id: string | null
+          merchant_name: string
+          model: string | null
+          officer: string
+          serial_number: string | null
+          status: string | null
+          terminal_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          installation_date?: string | null
+          last_transaction?: string | null
+          location?: string | null
+          merchant_id?: string | null
+          merchant_name: string
+          model?: string | null
+          officer: string
+          serial_number?: string | null
+          status?: string | null
+          terminal_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          installation_date?: string | null
+          last_transaction?: string | null
+          location?: string | null
+          merchant_id?: string | null
+          merchant_name?: string
+          model?: string | null
+          officer?: string
+          serial_number?: string | null
+          status?: string | null
+          terminal_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_sessions: {
+        Row: {
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          login_time: string | null
+          logout_time: string | null
+          session_duration: unknown | null
+          user_agent: string | null
+          user_email: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          login_time?: string | null
+          logout_time?: string | null
+          session_duration?: unknown | null
+          user_agent?: string | null
+          user_email: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          login_time?: string | null
+          logout_time?: string | null
+          session_duration?: unknown | null
+          user_agent?: string | null
+          user_email?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
