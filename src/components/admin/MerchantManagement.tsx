@@ -12,6 +12,7 @@ import { AddMerchantDialog } from "../merchants/AddMerchantDialog";
 import { EditMerchantDialog } from "./EditMerchantDialog";
 import { useToast } from "@/hooks/use-toast";
 import { databaseService } from "@/services/databaseService";
+import { dataProcessor } from "@/utils/dataProcessing";
 
 interface Merchant {
   id: string;

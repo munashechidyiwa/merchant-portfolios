@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface DatabaseMerchant {
@@ -92,8 +91,22 @@ export class DatabaseService {
     const { data, error } = await supabase
       .from('merchants')
       .insert({
-        ...merchant,
-        updated_at: new Date().toISOString()
+        terminal_id: merchant.terminal_id!,
+        account_cif: merchant.account_cif!,
+        merchant_name: merchant.merchant_name!,
+        support_officer: merchant.support_officer!,
+        category: merchant.category,
+        status: merchant.status || 'Active',
+        sector: merchant.sector,
+        business_unit: merchant.business_unit,
+        branch_code: merchant.branch_code,
+        location: merchant.location,
+        zwg_sales: merchant.zwg_sales || 0,
+        usd_sales: merchant.usd_sales || 0,
+        consolidated_usd: merchant.consolidated_usd || 0,
+        month_to_date_total: merchant.month_to_date_total || 0,
+        contribution_percentage: merchant.contribution_percentage || 0,
+        last_activity: merchant.last_activity || new Date().toISOString()
       })
       .select()
       .single();
@@ -103,12 +116,25 @@ export class DatabaseService {
   }
 
   async updateMerchant(id: string, updates: Partial<DatabaseMerchant>): Promise<DatabaseMerchant> {
+    const updateData: any = {};
+    
+    // Only include fields that exist in the updates object
+    if (updates.merchant_name !== undefined) updateData.merchant_name = updates.merchant_name;
+    if (updates.support_officer !== undefined) updateData.support_officer = updates.support_officer;
+    if (updates.category !== undefined) updateData.category = updates.category;
+    if (updates.sector !== undefined) updateData.sector = updates.sector;
+    if (updates.business_unit !== undefined) updateData.business_unit = updates.business_unit;
+    if (updates.branch_code !== undefined) updateData.branch_code = updates.branch_code;
+    if (updates.location !== undefined) updateData.location = updates.location;
+    if (updates.status !== undefined) updateData.status = updates.status;
+    if (updates.zwg_sales !== undefined) updateData.zwg_sales = updates.zwg_sales;
+    if (updates.usd_sales !== undefined) updateData.usd_sales = updates.usd_sales;
+    if (updates.consolidated_usd !== undefined) updateData.consolidated_usd = updates.consolidated_usd;
+    if (updates.contribution_percentage !== undefined) updateData.contribution_percentage = updates.contribution_percentage;
+    
     const { data, error } = await supabase
       .from('merchants')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
@@ -127,13 +153,28 @@ export class DatabaseService {
   }
 
   async bulkInsertMerchants(merchants: Partial<DatabaseMerchant>[]): Promise<DatabaseMerchant[]> {
+    const merchantsToInsert = merchants.map(m => ({
+      terminal_id: m.terminal_id!,
+      account_cif: m.account_cif!,
+      merchant_name: m.merchant_name!,
+      support_officer: m.support_officer!,
+      category: m.category,
+      status: m.status || 'Active',
+      sector: m.sector,
+      business_unit: m.business_unit,
+      branch_code: m.branch_code,
+      location: m.location,
+      zwg_sales: m.zwg_sales || 0,
+      usd_sales: m.usd_sales || 0,
+      consolidated_usd: m.consolidated_usd || 0,
+      month_to_date_total: m.month_to_date_total || 0,
+      contribution_percentage: m.contribution_percentage || 0,
+      last_activity: m.last_activity || new Date().toISOString()
+    }));
+
     const { data, error } = await supabase
       .from('merchants')
-      .insert(merchants.map(m => ({
-        ...m,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })))
+      .insert(merchantsToInsert)
       .select();
     
     if (error) throw error;
@@ -155,8 +196,16 @@ export class DatabaseService {
     const { data, error } = await supabase
       .from('terminals')
       .insert({
-        ...terminal,
-        updated_at: new Date().toISOString()
+        terminal_id: terminal.terminal_id!,
+        merchant_name: terminal.merchant_name!,
+        officer: terminal.officer!,
+        serial_number: terminal.serial_number,
+        merchant_id: terminal.merchant_id,
+        location: terminal.location,
+        status: terminal.status || 'Active',
+        last_transaction: terminal.last_transaction,
+        installation_date: terminal.installation_date,
+        model: terminal.model
       })
       .select()
       .single();
@@ -166,13 +215,22 @@ export class DatabaseService {
   }
 
   async bulkInsertTerminals(terminals: Partial<DatabaseTerminal>[]): Promise<DatabaseTerminal[]> {
+    const terminalsToInsert = terminals.map(t => ({
+      terminal_id: t.terminal_id!,
+      merchant_name: t.merchant_name!,
+      officer: t.officer!,
+      serial_number: t.serial_number,
+      merchant_id: t.merchant_id,
+      location: t.location,
+      status: t.status || 'Active',
+      last_transaction: t.last_transaction,
+      installation_date: t.installation_date,
+      model: t.model
+    }));
+
     const { data, error } = await supabase
       .from('terminals')
-      .insert(terminals.map(t => ({
-        ...t,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })))
+      .insert(terminalsToInsert)
       .select();
     
     if (error) throw error;
